@@ -8,7 +8,6 @@ export function CursorEffects() {
   const { springX, springY, springXSlow, springYSlow, x, y, enabled } =
     useCursor();
   const [clicking, setClicking] = useState(false);
-
   const dotScale = useMotionValue(1);
 
   useEffect(() => {
@@ -16,7 +15,7 @@ export function CursorEffects() {
     document.body.classList.add("cursor-custom");
     const down = () => {
       setClicking(true);
-      dotScale.set(0.6);
+      dotScale.set(0.5);
     };
     const up = () => {
       setClicking(false);
@@ -35,59 +34,35 @@ export function CursorEffects() {
 
   return (
     <>
-      {/* Large ambient spotlight — slow follow */}
+      {/* Soft cursor aura — blends with flow field */}
       <motion.div
         className="pointer-events-none fixed inset-0 z-[1]"
         style={{ x: springXSlow, y: springYSlow }}
       >
         <div
-          className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen dark:mix-blend-screen"
-          style={{
-            width: 600,
-            height: 600,
-            background:
-              "radial-gradient(circle, rgba(139,92,246,0.14) 0%, rgba(99,102,241,0.06) 40%, transparent 70%)",
-          }}
-        />
-      </motion.div>
-
-      {/* Medium glow */}
-      <motion.div
-        className="pointer-events-none fixed inset-0 z-[2]"
-        style={{ x: springX, y: springY }}
-      >
-        <div
           className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            width: 200,
-            height: 200,
+            width: 320,
+            height: 320,
             background:
-              "radial-gradient(circle, rgba(167,139,250,0.2) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(139,92,246,0.18) 0%, rgba(99,102,241,0.06) 45%, transparent 70%)",
           }}
         />
       </motion.div>
 
-      {/* Cursor ring — medium lag */}
+      {/* Cursor ring */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[9998]"
-        style={{
-          x: springX,
-          y: springY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
+        style={{ x: springX, y: springY, translateX: "-50%", translateY: "-50%" }}
       >
         <motion.div
-          animate={{
-            scale: clicking ? 0.85 : 1,
-            opacity: clicking ? 0.9 : 0.5,
-          }}
-          transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          className="h-10 w-10 rounded-full border border-violet-400/40"
+          animate={{ scale: clicking ? 0.7 : 1, opacity: clicking ? 1 : 0.35 }}
+          transition={{ type: "spring", stiffness: 500, damping: 28 }}
+          className="h-8 w-8 rounded-full border border-violet-300/50"
         />
       </motion.div>
 
-      {/* Cursor dot — fast follow */}
+      {/* Cursor core */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[9999]"
         style={{
@@ -98,32 +73,8 @@ export function CursorEffects() {
           scale: dotScale,
         }}
       >
-        <div className="h-2 w-2 rounded-full bg-violet-400 shadow-[0_0_12px_rgba(167,139,250,0.8)]" />
+        <div className="h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(200,180,255,0.9)]" />
       </motion.div>
     </>
-  );
-}
-
-/** Spotlight mask for sections — place inside relative container */
-export function CursorSpotlight({ className }: { className?: string }) {
-  const { springXSlow, springYSlow, enabled } = useCursor();
-
-  if (!enabled) return null;
-
-  return (
-    <motion.div
-      className={`pointer-events-none absolute inset-0 z-0 overflow-hidden ${className ?? ""}`}
-      style={{ x: springXSlow, y: springYSlow }}
-    >
-      <div
-        className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{
-          width: 400,
-          height: 400,
-          background:
-            "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 65%)",
-        }}
-      />
-    </motion.div>
   );
 }

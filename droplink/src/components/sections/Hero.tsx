@@ -17,17 +17,13 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
-      {/* Soft spotlight — no circles */}
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 bg-[radial-gradient(ellipse,rgba(124,58,237,0.15)_0%,transparent_70%)]" />
-
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          {/* Copy */}
+        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
           <div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-violet-200 backdrop-blur-xl"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-violet-200/90 backdrop-blur-md"
             >
               <Gift className="h-3.5 w-3.5 text-violet-400" />
               {user
@@ -41,21 +37,21 @@ export function Hero() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.08 }}
-              className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.5rem]"
+              className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
             >
-              File sharing,{" "}
-              <span className="gradient-text">reimagined.</span>
+              Share files in a{" "}
+              <span className="gradient-text">flow.</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.16 }}
-              className="mt-5 max-w-lg text-base leading-relaxed text-muted sm:text-lg"
+              className="mt-5 max-w-lg text-base leading-relaxed text-muted/90 sm:text-lg"
             >
               {user
-                ? "Upload unlimited files, manage your vault, and share secure links in one click."
-                : "Drop a file, get a link instantly. No signup for your first upload — create an account when you're ready for more."}
+                ? "Upload unlimited files, manage your vault, and share secure links instantly."
+                : "Drop a file, get a link. One free try without signup — then unlock your full file vault."}
             </motion.p>
 
             <motion.div
@@ -72,15 +68,15 @@ export function Hero() {
                 {user
                   ? "Upload Now"
                   : freeUsed
-                    ? "Create Free Account"
+                    ? "Create Account"
                     : "Try Free Upload"}
               </a>
               <a
                 href="#features"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold backdrop-blur-xl transition-colors hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold backdrop-blur-md transition-colors hover:bg-white/[0.08]"
               >
-                See Features
-                <ArrowRight className="h-4 w-4 opacity-60" />
+                Features
+                <ArrowRight className="h-4 w-4 opacity-50" />
               </a>
             </motion.div>
 
@@ -88,7 +84,7 @@ export function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
-              className="mt-10 flex flex-wrap gap-6"
+              className="mt-10 flex flex-wrap gap-5"
             >
               {[
                 { icon: Zap, label: "Instant links" },
@@ -99,45 +95,22 @@ export function Hero() {
                   key={label}
                   className="flex items-center gap-2 text-xs text-muted sm:text-sm"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5">
-                    <Icon className="h-3.5 w-3.5 text-violet-400" />
-                  </span>
+                  <Icon className="h-3.5 w-3.5 text-violet-400/80" />
                   {label}
                 </span>
               ))}
             </motion.div>
           </div>
 
-          {/* Product mockup */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.7 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
             className="hidden sm:block"
           >
             <HeroShowcase />
           </motion.div>
         </div>
-
-        {/* Trust strip — clean, not marquee */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          className="mt-16 rounded-2xl border border-white/8 bg-white/[0.03] px-6 py-4 backdrop-blur-xl"
-        >
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted sm:text-sm">
-            <span className="font-medium text-foreground/70">
-              Powered by MEGA Cloud
-            </span>
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
-            <span>Password links — coming soon</span>
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
-            <span>Team workspaces — coming soon</span>
-            <span className="hidden h-4 w-px bg-white/10 sm:block" />
-            <span>Developer API — coming soon</span>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
