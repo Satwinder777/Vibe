@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Trash2, ExternalLink, FolderOpen, LogIn } from "lucide-react";
+import { Copy, Trash2, ExternalLink, FolderOpen } from "lucide-react";
 import { FileIcon } from "@/components/ui/FileIcon";
-import { AuthModal } from "@/components/auth/AuthModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
@@ -19,10 +18,7 @@ import {
   getFileById,
   isMegaConfigured,
 } from "@/lib/mega-client";
-import {
-  getUserUploads,
-  deleteUserUpload,
-} from "@/lib/user-uploads";
+import { getUserUploads, deleteUserUpload } from "@/lib/user-uploads";
 import type { UploadResult } from "@/lib/types";
 
 interface FileDashboardProps {
@@ -34,7 +30,6 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
     (UploadResult & { shareUrl: string; previewUrl?: string })[]
   >([]);
   const [loading, setLoading] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
   const { showToast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -61,7 +56,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
                 previewUrl = URL.createObjectURL(blob);
               }
             } catch {
-              /* preview optional */
+              /* optional */
             }
           }
           return { ...f, shareUrl, previewUrl };
@@ -69,14 +64,14 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
       );
       setFiles(mapped);
     } catch {
-      showToast("Failed to load your uploads", "error");
+      showToast("Failed to load uploads", "error");
     } finally {
       setLoading(false);
     }
   }, [user, showToast]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !user) return;
     fetchFiles();
     return () => {
       files.forEach((f) => {
@@ -88,7 +83,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
 
   const copyLink = async (url: string) => {
     await navigator.clipboard.writeText(url);
-    showToast("Link copied to clipboard!");
+    showToast("Link copied!");
   };
 
   const deleteFile = async (id: string) => {
@@ -99,97 +94,48 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
       setFiles((prev) => prev.filter((f) => f.id !== id));
       showToast("File deleted");
     } catch {
-      showToast("Failed to delete file", "error");
+      showToast("Failed to delete", "error");
     }
   };
 
-  if (authLoading) return null;
-
-  if (!user) {
-    return (
-      <section id="history" className="py-8 sm:py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="glass-card rounded-3xl p-10 text-center transition-all hover:shadow-xl hover:shadow-violet-500/10">
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/15"
-            >
-              <FolderOpen className="h-7 w-7 text-accent" />
-            </motion.div>
-            <h2 className="text-xl font-bold">Your Upload History</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted">
-              Sign in to see all files you&apos;ve uploaded and manage your
-              share links in one place.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setAuthOpen(true)}
-              className="btn-glow mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25"
-            >
-              <LogIn className="h-4 w-4" />
-              Sign in to view history
-            </motion.button>
-          </div>
-        </div>
-        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
-      </section>
-    );
-  }
-
-  if (loading) {
-    return (
-      <section className="py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 w-48 rounded-lg bg-surface-elevated" />
-            <div className="h-24 rounded-2xl bg-surface-elevated" />
-            <div className="h-24 rounded-2xl bg-surface-elevated" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (files.length === 0) {
-    return (
-      <section id="history" className="py-8 sm:py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-violet-500/30">
-              <FolderOpen className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">Your Uploads</h2>
-              <p className="text-sm text-muted">No files yet — upload your first!</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  if (authLoading || !user) return null;
 
   return (
-    <section id="history" className="py-8 sm:py-12">
+    <section id="history" className="py-10 sm:py-14">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-violet-500/30">
-            <FolderOpen className="h-5 w-5 text-accent" />
+        <div className="mb-8 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/15">
+            <FolderOpen className="h-6 w-6 text-accent" />
           </div>
           <div>
-            <h2 className="text-xl font-bold">Your Uploads</h2>
+            <h2 className="text-2xl font-bold">Your Vault</h2>
             <p className="text-sm text-muted">
-              {files.length} file{files.length !== 1 ? "s" : ""} in your account
+              {loading
+                ? "Loading..."
+                : files.length === 0
+                  ? "No uploads yet"
+                  : `${files.length} file${files.length !== 1 ? "s" : ""} saved`}
             </p>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {files.map((file, index) => {
-              const isImage = !!file.previewUrl;
-              return (
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-20 animate-pulse rounded-2xl bg-surface-elevated"
+              />
+            ))}
+          </div>
+        ) : files.length === 0 ? (
+          <div className="bento-card p-10 text-center">
+            <p className="text-muted">Upload your first file above — it&apos;ll appear here.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {files.map((file, index) => (
                 <motion.div
                   key={file.id}
                   layout
@@ -197,12 +143,11 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.04 }}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  className="group glass-card rounded-2xl p-4"
+                  className="bento-card p-4"
                 >
                   <div className="flex items-center gap-4">
-                    {isImage && file.previewUrl ? (
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface-elevated ring-1 ring-border">
+                    {file.previewUrl ? (
+                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl ring-1 ring-border">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={file.previewUrl}
@@ -213,30 +158,23 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
                     ) : (
                       <FileIcon filename={file.name} size="lg" />
                     )}
-
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{file.name}</p>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                      <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted">
                         <span>{formatFileSize(file.size)}</span>
-                        <span>·</span>
-                        <span className="uppercase">
-                          {file.extension || "file"}
-                        </span>
-                        <span>·</span>
+                        <span>{file.extension?.toUpperCase() || "FILE"}</span>
                         <span>{formatDate(file.uploadedAt)}</span>
                       </div>
-                      <p className="mt-1.5 truncate font-mono text-xs text-accent/80">
+                      <p className="mt-1 truncate font-mono text-xs text-accent/70">
                         {file.shareUrl}
                       </p>
                     </div>
-
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 gap-1.5">
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => copyLink(file.shareUrl)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:border-accent/40 hover:text-accent"
-                        title="Copy link"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted hover:border-accent/40 hover:text-accent"
                       >
                         <Copy className="h-4 w-4" />
                       </motion.button>
@@ -244,27 +182,25 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
                         href={`${basePath}/share/?id=${file.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:border-accent/40 hover:text-accent"
-                        title="Open link"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted hover:border-accent/40 hover:text-accent"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => deleteFile(file.id)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:border-red-500/40 hover:text-red-400"
-                        title="Delete"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted hover:border-red-500/40 hover:text-red-400"
                       >
                         <Trash2 className="h-4 w-4" />
                       </motion.button>
                     </div>
                   </div>
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </section>
   );

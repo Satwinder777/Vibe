@@ -1,65 +1,100 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 export function Background() {
+  const [mouse, setMouse] = useState({ x: 50, y: 50 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      setMouse({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100,
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let frame: number;
+    let t = 0;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const draw = () => {
+      t += 0.004;
+      const { width, height } = canvas;
+      ctx.clearRect(0, 0, width, height);
+
+      const blobs = [
+        { cx: 0.2, cy: 0.3, r: 0.35, color: "124, 58, 237" },
+        { cx: 0.8, cy: 0.2, r: 0.3, color: "99, 102, 241" },
+        { cx: 0.5, cy: 0.7, r: 0.4, color: "192, 132, 252" },
+        { cx: 0.1, cy: 0.8, r: 0.25, color: "236, 72, 153" },
+      ];
+
+      blobs.forEach((b, i) => {
+        const ox = Math.sin(t + i * 1.5) * 0.08;
+        const oy = Math.cos(t + i * 1.2) * 0.06;
+        const x = (b.cx + ox) * width;
+        const y = (b.cy + oy) * height;
+        const r = b.r * Math.min(width, height);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `rgba(${b.color}, 0.2)`);
+        grad.addColorStop(1, `rgba(${b.color}, 0)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+      });
+
+      frame = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(124,58,237,0.22),transparent)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_100%_0%,rgba(99,102,241,0.15),transparent)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_30%_at_0%_100%,rgba(192,132,252,0.12),transparent)]" />
-      <motion.div
-        animate={{ opacity: [0.2, 0.35, 0.2] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0"
+      <canvas ref={canvasRef} className="absolute inset-0 opacity-70 dark:opacity-90" />
+      <div
+        className="absolute inset-0 transition-all duration-700 ease-out"
         style={{
-          backgroundImage:
-            "linear-gradient(rgba(124,58,237,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.07) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
+          background: `radial-gradient(ellipse 45% 35% at ${mouse.x}% ${mouse.y}%, rgba(139,92,246,0.18), transparent 65%)`,
         }}
       />
-      <motion.div
-        animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-violet-600/25 blur-[120px]"
+      <div
+        className="absolute inset-0 opacity-[0.025] dark:opacity-[0.04]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
       />
-      <motion.div
-        animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-indigo-500/20 blur-[100px]"
+      <div
+        className="absolute inset-0 opacity-40 dark:opacity-60"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px)",
+          backgroundSize: "72px 72px",
+          maskImage:
+            "radial-gradient(ellipse 90% 70% at 50% 30%, black 10%, transparent 75%)",
+        }}
       />
-      <motion.div
-        animate={{ x: [0, 30, 0], y: [0, 50, 0], scale: [1, 1.08, 1] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-purple-500/15 blur-[90px]"
-      />
-      <motion.div
-        animate={{ x: [0, -20, 0], y: [0, -15, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/8 blur-[80px]"
-      />
-      {[...Array(6)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-1 w-1 rounded-full bg-violet-400/40"
-          style={{
-            left: `${15 + i * 14}%`,
-            top: `${20 + (i % 3) * 25}%`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            opacity: [0.2, 0.8, 0.2],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: 3 + i * 0.5,
-            repeat: Infinity,
-            delay: i * 0.4,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
     </div>
   );
 }

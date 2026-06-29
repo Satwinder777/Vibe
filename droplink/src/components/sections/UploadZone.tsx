@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { customAlphabet } from "nanoid";
 import {
   CloudUpload,
-  FileUp,
   CheckCircle2,
   Copy,
   Link2,
   X,
   Lock,
   Sparkles,
+  Gift,
+  AlertCircle,
 } from "lucide-react";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { FileIcon } from "@/components/ui/FileIcon";
@@ -21,6 +22,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { getShareUrl } from "@/lib/utils";
 import { uploadToMega, isMegaConfigured } from "@/lib/mega-client";
 import { saveUserUpload } from "@/lib/user-uploads";
+import { hasUsedFreeUpload, markFreeUploadUsed } from "@/lib/free-upload";
 import type { UploadProgress, UploadResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -37,30 +39,51 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadProgress[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
+  const [freeUsed, setFreeUsed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const zoneRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const { user, loading: authLoading } = useAuth();
 
+  useEffect(() => {
+    setFreeUsed(hasUsedFreeUpload());
+  }, []);
+
+  const locked = !authLoading && !user && freeUsed;
+  const isGuest = !user && !freeUsed;
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const el = zoneRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const mx = ((e.clientX - rect.left) / rect.width) * 100;
+    const my = ((e.clientY - rect.top) / rect.height) * 100;
+    el.style.setProperty("--mx", `${mx}%`);
+    el.style.setProperty("--my", `${my}%`);
+  };
+
   const processFiles = useCallback(
     async (files: FileList | File[]) => {
-      const fileArray = Array.from(files);
+      let fileArray = Array.from(files);
       if (fileArray.length === 0) return;
 
-      if (!user) {
+      if (!user && freeUsed) {
         setAuthOpen(true);
-        showToast("Sign up or sign in to upload files", "error");
+        showToast("Free upload used — sign up for unlimited uploads", "error");
         return;
+      }
+
+      if (!user && fileArray.length > 1) {
+        showToast("Guest users can upload 1 file only", "error");
+        fileArray = [fileArray[0]];
       }
 
       if (!isMegaConfigured()) {
-        showToast(
-          "MEGA not configured. Add credentials to .env.local",
-          "error"
-        );
+        showToast("MEGA not configured", "error");
         return;
       }
 
-      const userId = user.uid;
+      const ownerId = user?.uid ?? null;
 
       const newUploads: UploadProgress[] = fileArray.map((file) => ({
         fileId: crypto.randomUUID(),
@@ -86,7 +109,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           const shared = await uploadToMega(
             shareId,
             file,
-            userId,
+            ownerId,
             (percent) => {
               setUploads((prev) =>
                 prev.map((u) =>
@@ -106,7 +129,12 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             shareUrl: getShareUrl(shared.id),
           };
 
-          await saveUserUpload(userId, result);
+          if (user) {
+            await saveUserUpload(user.uid, result);
+          } else {
+            markFreeUploadUsed();
+            setFreeUsed(true);
+          }
 
           setUploads((prev) =>
             prev.map((u) =>
@@ -117,6 +145,10 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           );
 
           onUploadComplete(result);
+
+          if (!user) {
+            showToast("Free upload done! Sign up to upload more.");
+          }
         } catch (error) {
           setUploads((prev) =>
             prev.map((u) =>
@@ -134,42 +166,69 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
         }
       }
     },
-    [onUploadComplete, showToast, user]
+    [onUploadComplete, showToast, user, freeUsed]
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
+      if (locked) {
+        setAuthOpen(true);
+        return;
+      }
       processFiles(e.dataTransfer.files);
     },
-    [processFiles]
+    [processFiles, locked]
   );
 
   const copyLink = async (url: string) => {
     await navigator.clipboard.writeText(url);
-    showToast("Link copied to clipboard!");
+    showToast("Link copied!");
   };
-
-  const removeUpload = (fileId: string) => {
-    setUploads((prev) => prev.filter((u) => u.fileId !== fileId));
-  };
-
-  const locked = !authLoading && !user;
 
   return (
-    <section id="upload" className="relative py-8 sm:py-12">
+    <section id="upload" className="relative py-10 sm:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        {/* Free tier banner */}
+        {!user && !authLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "mb-5 flex items-start gap-3 rounded-2xl border p-4 backdrop-blur-md",
+              freeUsed
+                ? "border-amber-500/30 bg-amber-500/8"
+                : "border-emerald-500/30 bg-emerald-500/8"
+            )}
+          >
+            {freeUsed ? (
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+            ) : (
+              <Gift className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+            )}
+            <div>
+              <p className="text-sm font-semibold">
+                {freeUsed ? "Free upload used" : "Guest mode — 1 free upload"}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">
+                {freeUsed
+                  ? "You've used your free upload. Sign up or login for unlimited files + upload history."
+                  : "Upload 1 file without an account. You'll get a share link — but no history. Sign up for unlimited uploads."}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         <motion.div
+          ref={zoneRef}
+          onMouseMove={handleMouseMove}
           onDragOver={(e) => {
             if (locked) return;
             e.preventDefault();
             setIsDragging(true);
           }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-          }}
+          onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => {
             if (locked) {
@@ -178,21 +237,17 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             }
             inputRef.current?.click();
           }}
-          whileHover={locked ? { scale: 1.01 } : { scale: 1.02, y: -4 }}
-          whileTap={locked ? {} : { scale: 0.99 }}
+          whileHover={locked ? {} : { scale: 1.01 }}
+          whileTap={locked ? {} : { scale: 0.995 }}
           className={cn(
-            "group relative cursor-pointer overflow-hidden rounded-3xl border-2 border-dashed transition-all duration-300 glass-card glow-ring shimmer-border",
-            locked
-              ? "border-violet-500/20"
-              : isDragging
-                ? "border-accent bg-accent/5 shadow-2xl shadow-violet-500/25"
-                : "border-border hover:border-accent/40"
+            "neon-border group relative cursor-pointer overflow-hidden rounded-3xl transition-all duration-500 upload-zone-glow",
+            isDragging && "scale-[1.02] border-accent/50"
           )}
         >
           <input
             ref={inputRef}
             type="file"
-            multiple
+            multiple={!!user}
             className="hidden"
             onChange={(e) => {
               if (e.target.files) processFiles(e.target.files);
@@ -200,44 +255,36 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             }}
           />
 
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-violet-500/8 via-transparent to-indigo-500/8 transition-opacity group-hover:from-violet-500/15 group-hover:to-indigo-500/12" />
-          <motion.div
-            className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity group-hover:opacity-100"
-            animate={{ opacity: isDragging ? 0.6 : 0 }}
-            style={{
-              background:
-                "radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(124,58,237,0.15), transparent 40%)",
-            }}
-          />
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-fuchsia-600/5" />
 
-          <div className="relative flex flex-col items-center px-6 py-16 sm:py-20">
+          <div className="relative flex flex-col items-center px-6 py-16 sm:py-24">
             {locked ? (
               <>
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                  transition={{ duration: 0.4 }}
-                  className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-violet-500/30"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border border-amber-500/30 bg-amber-500/10"
                 >
-                  <Lock className="h-10 w-10 text-accent" />
+                  <Lock className="h-12 w-12 text-amber-400" />
                 </motion.div>
-                <h2 className="text-xl font-bold sm:text-2xl">
-                  Sign in to upload
+                <h2 className="text-2xl font-bold sm:text-3xl">
+                  Free upload used
                 </h2>
-                <p className="mt-2 max-w-sm text-center text-muted">
-                  Create a free account to upload files and keep track of your
-                  share links
+                <p className="mt-3 max-w-sm text-center text-muted">
+                  Create an account for unlimited uploads, file history, and
+                  more features coming soon.
                 </p>
                 <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setAuthOpen(true);
                   }}
-                  className="btn-glow pointer-events-auto mt-6 flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25"
+                  className="btn-neon pointer-events-auto mt-8 flex items-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-bold text-white"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Get Started Free
+                  Sign Up Free
                 </motion.button>
               </>
             ) : (
@@ -245,39 +292,43 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                 <motion.div
                   animate={
                     isDragging
-                      ? { scale: 1.15, y: -8, rotate: 5 }
-                      : { scale: 1, y: 0, rotate: 0 }
+                      ? { scale: 1.2, rotate: 8, y: -10 }
+                      : { scale: 1, rotate: 0, y: 0 }
                   }
-                  whileHover={{ scale: 1.1, y: -4 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/25 to-indigo-500/25 ring-1 ring-violet-500/40 shadow-lg shadow-violet-500/20"
+                  transition={{ type: "spring", stiffness: 260 }}
+                  className="relative mb-8"
                 >
-                  <motion.div
-                    animate={isDragging ? { y: [0, -4, 0] } : {}}
-                    transition={{ duration: 0.5, repeat: isDragging ? Infinity : 0 }}
-                  >
-                    <CloudUpload className="h-10 w-10 text-accent" />
-                  </motion.div>
+                  <div className="absolute inset-0 scale-150 rounded-full bg-violet-500/20 blur-2xl" />
+                  <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-violet-500/40 bg-violet-500/15 backdrop-blur-sm">
+                    <CloudUpload className="h-12 w-12 text-accent" />
+                  </div>
                 </motion.div>
 
-                <h2 className="text-xl font-bold sm:text-2xl">
-                  {isDragging ? "Drop files here" : "Drag & drop files here"}
+                <h2 className="text-2xl font-bold sm:text-3xl">
+                  {isDragging
+                    ? "Release to upload"
+                    : isGuest
+                      ? "Drop your free file here"
+                      : "Drag & drop files here"}
                 </h2>
-                <p className="mt-2 text-center text-muted">
+                <p className="mt-3 text-center text-muted">
                   or{" "}
                   <span className="font-semibold text-accent">
                     click to browse
-                  </span>{" "}
-                  — stored securely on MEGA
+                  </span>
                 </p>
 
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="mt-6 flex items-center gap-2 rounded-full border border-border bg-surface-elevated/80 px-4 py-2 text-xs text-muted backdrop-blur-sm transition-colors hover:border-accent/30 hover:text-foreground"
-                >
-                  <FileUp className="h-3.5 w-3.5" />
-                  Multiple files · Instant share links
-                </motion.div>
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
+                  <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
+                    {isGuest ? "1 file only" : "Multiple files"}
+                  </span>
+                  <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
+                    MEGA secure
+                  </span>
+                  <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
+                    Instant link
+                  </span>
+                </div>
               </>
             )}
           </div>
@@ -288,7 +339,6 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
               className="mt-6 space-y-3"
             >
               {uploads.map((upload) => (
@@ -297,70 +347,56 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                   layout
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="glass-card rounded-2xl p-4"
+                  className="bento-card p-4"
                 >
                   <div className="flex items-start gap-3">
                     <FileIcon filename={upload.fileName} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">
-                            {upload.fileName}
-                          </p>
-                          {upload.status === "uploading" && (
-                            <ProgressBar
-                              progress={upload.progress}
-                              className="mt-2"
-                            />
-                          )}
-                          {upload.status === "error" && (
-                            <p className="mt-1 text-sm text-red-400">
-                              {upload.error}
+                      <p className="truncate font-medium">{upload.fileName}</p>
+                      {upload.status === "uploading" && (
+                        <ProgressBar progress={upload.progress} className="mt-2" />
+                      )}
+                      {upload.status === "error" && (
+                        <p className="mt-1 text-sm text-red-400">{upload.error}</p>
+                      )}
+                      {upload.status === "complete" && upload.result && (
+                        <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                          <div className="min-w-0 flex-1">
+                            <p className="flex items-center gap-1 text-xs font-medium text-emerald-400">
+                              <Link2 className="h-3 w-3" />
+                              Your link is ready
                             </p>
-                          )}
-                          {upload.status === "complete" && upload.result && (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              className="mt-3"
-                            >
-                              <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 px-3 py-2 ring-1 ring-emerald-500/20">
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                                    <Link2 className="h-3 w-3" />
-                                    Link ready
-                                  </p>
-                                  <p className="truncate font-mono text-xs text-muted">
-                                    {upload.result.shareUrl}
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    copyLink(upload.result!.shareUrl);
-                                  }}
-                                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/30"
-                                >
-                                  <Copy className="h-3 w-3" />
-                                  Copy
-                                </button>
-                              </div>
-                            </motion.div>
-                          )}
-                        </div>
-                        {(upload.status === "complete" ||
-                          upload.status === "error") && (
+                            <p className="truncate font-mono text-xs text-muted">
+                              {upload.result.shareUrl}
+                            </p>
+                          </div>
                           <button
-                            onClick={() => removeUpload(upload.fileId)}
-                            className="shrink-0 rounded-lg p-1 text-muted hover:bg-surface-elevated hover:text-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyLink(upload.result!.shareUrl);
+                            }}
+                            className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-500/30"
                           >
-                            <X className="h-4 w-4" />
+                            <Copy className="h-3 w-3" />
+                            Copy
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
+                    {(upload.status === "complete" ||
+                      upload.status === "error") && (
+                      <button
+                        onClick={() =>
+                          setUploads((p) =>
+                            p.filter((u) => u.fileId !== upload.fileId)
+                          )
+                        }
+                        className="shrink-0 rounded-lg p-1 text-muted hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}

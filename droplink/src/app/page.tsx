@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
 import { UploadZone } from "@/components/sections/UploadZone";
 import { FileDashboard } from "@/components/sections/FileDashboard";
-import { HowItWorks } from "@/components/sections/HowItWorks";
+import { FeaturesGrid } from "@/components/sections/FeaturesGrid";
 import type { UploadResult } from "@/lib/types";
 
 export default function HomePage() {
@@ -19,11 +19,11 @@ export default function HomePage() {
   return (
     <>
       <Navbar />
-      <main className="flex-1">
+      <main className="relative z-[2] flex-1">
         <Hero />
         <UploadZone onUploadComplete={handleUploadComplete} />
         <FileDashboard refreshTrigger={refreshTrigger} />
-        <HowItWorks />
+        <FeaturesGrid />
       </main>
       <Footer />
     </>

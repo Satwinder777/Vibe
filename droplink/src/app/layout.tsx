@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Background } from "@/components/ui/Background";
+import { CursorGlow } from "@/components/ui/CursorGlow";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DropLink — Instant File Sharing",
   description:
-    "Share any file instantly with a single link. Sign up, upload, and track your files — powered by MEGA cloud storage.",
+    "Share files instantly. 1 free upload without signup, or create an account for unlimited uploads and file vault.",
   keywords: ["file sharing", "cloud storage", "MEGA", "upload", "share link"],
   openGraph: {
     title: "DropLink — Instant File Sharing",
@@ -44,6 +45,7 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <Background />
+              <CursorGlow />
               {children}
             </ToastProvider>
           </AuthProvider>
