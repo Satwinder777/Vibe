@@ -51,6 +51,18 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+body.cursor-custom,
+body.cursor-custom * {
+  cursor: none !important;
+}
+
+@media (pointer: coarse) {
+  body.cursor-custom,
+  body.cursor-custom * {
+    cursor: auto !important;
+  }
+}
+
 .gradient-text {
   background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #c4b5fd 100%);
   -webkit-background-clip: text;

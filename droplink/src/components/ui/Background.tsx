@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useCursor } from "@/components/providers/CursorProvider";
 
 export function Background() {
-  const [mouse, setMouse] = useState({ x: 50, y: 40 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: 0.5, y: 0.4 });
+  const { x, y, enabled } = useCursor();
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      setMouse({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
-      });
+    if (!enabled) return;
+    const unsubX = x.on("change", (v) => {
+      mouseRef.current.x = v / window.innerWidth;
+    });
+    const unsubY = y.on("change", (v) => {
+      mouseRef.current.y = v / window.innerHeight;
+    });
+    return () => {
+      unsubX();
+      unsubY();
     };
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
+  }, [x, y, enabled]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -36,6 +41,8 @@ export function Background() {
     const draw = () => {
       t += 0.003;
       const { width, height } = canvas;
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
       ctx.clearRect(0, 0, width, height);
 
       const blobs = [
@@ -45,18 +52,29 @@ export function Background() {
       ];
 
       blobs.forEach((b, i) => {
-        const ox = Math.sin(t + i * 1.8) * 0.05;
-        const oy = Math.cos(t + i * 1.4) * 0.04;
-        const x = (b.cx + ox) * width;
-        const y = (b.cy + oy) * height;
+        const pull = enabled ? 0.06 : 0;
+        const ox = Math.sin(t + i * 1.8) * 0.05 + (mx - b.cx) * pull;
+        const oy = Math.cos(t + i * 1.4) * 0.04 + (my - b.cy) * pull;
+        const bx = (b.cx + ox) * width;
+        const by = (b.cy + oy) * height;
         const r = b.r * Math.min(width, height);
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-        grad.addColorStop(0, `rgba(${b.color}, 0.14)`);
-        grad.addColorStop(0.5, `rgba(${b.color}, 0.04)`);
+        const grad = ctx.createRadialGradient(bx, by, 0, bx, by, r);
+        grad.addColorStop(0, `rgba(${b.color}, 0.16)`);
+        grad.addColorStop(0.5, `rgba(${b.color}, 0.05)`);
         grad.addColorStop(1, `rgba(${b.color}, 0)`);
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
       });
+
+      if (enabled) {
+        const cx = mx * width;
+        const cy = my * height;
+        const cursorGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 280);
+        cursorGrad.addColorStop(0, "rgba(139, 92, 246, 0.08)");
+        cursorGrad.addColorStop(1, "rgba(139, 92, 246, 0)");
+        ctx.fillStyle = cursorGrad;
+        ctx.fillRect(0, 0, width, height);
+      }
 
       frame = requestAnimationFrame(draw);
     };
@@ -66,23 +84,15 @@ export function Background() {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [enabled]);
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div className="absolute inset-0 bg-[#07050f]" />
       <div className="absolute inset-0 bg-background opacity-0 dark:opacity-100" />
       <div className="absolute inset-0 bg-[#f8f6ff] opacity-100 dark:opacity-0" />
-      <canvas ref={canvasRef} className="absolute inset-0 opacity-60" />
-      <div
-        className="absolute inset-0 transition-all duration-1000 ease-out"
-        style={{
-          background: `radial-gradient(ellipse 50% 40% at ${mouse.x}% ${mouse.y}%, rgba(139,92,246,0.1), transparent 70%)`,
-        }}
-      />
-      {/* Top vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(124,58,237,0.12),transparent)]" />
-      {/* Bottom fade */}
+      <canvas ref={canvasRef} className="absolute inset-0 opacity-70" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(124,58,237,0.1),transparent)]" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
     </div>
   );

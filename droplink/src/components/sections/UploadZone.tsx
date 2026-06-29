@@ -256,6 +256,13 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           />
 
           <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-fuchsia-600/5" />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(139,92,246,0.15), transparent 50%)",
+            }}
+          />
 
           <div className="relative flex flex-col items-center px-6 py-16 sm:py-24">
             {locked ? (

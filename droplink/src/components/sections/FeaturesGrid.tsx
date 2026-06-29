@@ -16,6 +16,7 @@ import {
   Infinity,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { TiltCard } from "@/components/ui/TiltCard";
 
 const liveFeatures = [
   {
@@ -121,21 +122,22 @@ function FeatureCard({
   large?: boolean;
 }) {
   return (
-    <motion.div
-      whileHover={{ y: -6 }}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty(
-          "--mx",
-          `${((e.clientX - rect.left) / rect.width) * 100}%`
-        );
-        e.currentTarget.style.setProperty(
-          "--my",
-          `${((e.clientY - rect.top) / rect.height) * 100}%`
-        );
-      }}
-      className={`bento-card group p-6 ${large ? "sm:col-span-2" : ""}`}
-    >
+    <TiltCard intensity={8} className={large ? "sm:col-span-2" : ""}>
+      <motion.div
+        whileHover={{ y: -4 }}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          e.currentTarget.style.setProperty(
+            "--mx",
+            `${((e.clientX - rect.left) / rect.width) * 100}%`
+          );
+          e.currentTarget.style.setProperty(
+            "--my",
+            `${((e.clientY - rect.top) / rect.height) * 100}%`
+          );
+        }}
+        className="bento-card group h-full p-6"
+      >
       <div className="flex items-start justify-between">
         <motion.div
           whileHover={{ rotate: 10, scale: 1.1 }}
@@ -158,7 +160,8 @@ function FeatureCard({
         {title}
       </h3>
       <p className="mt-1.5 text-sm leading-relaxed text-muted">{desc}</p>
-    </motion.div>
+      </motion.div>
+    </TiltCard>
   );
 }
 
