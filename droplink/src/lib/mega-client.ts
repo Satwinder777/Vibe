@@ -29,6 +29,10 @@ export function isMegaConfigured(): boolean {
   );
 }
 
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^\w.\-() ]/g, "_").slice(0, 180);
+}
+
 export function getMegaStorageName(
   shareId: string,
   originalName: string,
@@ -37,7 +41,8 @@ export function getMegaStorageName(
   const sessionTag = sessionId
     ? sessionId.replace(/-/g, "").slice(0, 8)
     : "anon";
-  return `${SHARE_PREFIX}${shareId}_${sessionTag}__${originalName}`;
+  const safeName = sanitizeFileName(originalName);
+  return `${SHARE_PREFIX}${shareId}_${sessionTag}__${safeName}`;
 }
 
 export function parseMegaStorageName(
@@ -70,18 +75,29 @@ async function getStorage(): Promise<MegaStorage> {
 }
 
 async function getUploadFolder(): Promise<MutableFile> {
-  if (uploadFolder) return uploadFolder;
-
   const storage = await getStorage();
+  await storage.reload();
+
   const folderName =
     process.env.NEXT_PUBLIC_MEGA_FOLDER_NAME ?? "vibe";
 
-  let folder = storage.root.children?.find(
-    (child) => child.directory && child.name === folderName
+  let folder = storage.find(
+    (child) => child.directory && child.name === folderName,
+    true
   );
 
   if (!folder) {
     folder = await storage.mkdir(folderName);
+    await storage.reload();
+    folder =
+      storage.find(
+        (child) => child.directory && child.name === folderName,
+        true
+      ) ?? folder;
+  }
+
+  if (!folder?.nodeId) {
+    throw new Error("MEGA upload folder could not be resolved.");
   }
 
   uploadFolder = folder;
@@ -124,22 +140,24 @@ export async function uploadToMega(
   sessionId: string | null,
   onProgress?: (percent: number) => void
 ): Promise<SharedFile> {
+  uploadFolder = null;
   const folder = await getUploadFolder();
   const buffer = await file.arrayBuffer();
+  const data = new Uint8Array(buffer);
   const storageName = getMegaStorageName(shareId, file.name, sessionId);
 
-  onProgress?.(15);
+  onProgress?.(20);
 
-  const uploadStream = folder.upload({
-    name: storageName,
-    size: buffer.byteLength,
-  });
+  const uploadedFile = await folder
+    .upload(
+      {
+        name: storageName,
+        size: data.byteLength,
+      },
+      data
+    )
+    .complete;
 
-  onProgress?.(40);
-  uploadStream.end(new Uint8Array(buffer));
-  onProgress?.(75);
-
-  const uploadedFile = await uploadStream.complete;
   onProgress?.(100);
 
   const uploadedAt = new Date().toISOString();
