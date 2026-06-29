@@ -240,8 +240,8 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           whileHover={locked ? {} : { scale: 1.01 }}
           whileTap={locked ? {} : { scale: 0.995 }}
           className={cn(
-            "neon-border group relative cursor-pointer overflow-hidden rounded-3xl transition-all duration-500 upload-zone-glow",
-            isDragging && "scale-[1.02] border-accent/50"
+            "group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl transition-all duration-300 upload-zone-glow",
+            isDragging && "scale-[1.01] border-violet-500/30"
           )}
         >
           <input

@@ -4,7 +4,6 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { Background } from "@/components/ui/Background";
-import { CursorGlow } from "@/components/ui/CursorGlow";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +44,6 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <Background />
-              <CursorGlow />
               {children}
             </ToastProvider>
           </AuthProvider>
