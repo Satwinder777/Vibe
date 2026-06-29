@@ -185,7 +185,8 @@ export const copy = {
   },
 
   footer: {
-    builtBy: "Crafted by Satwinder",
+    builtWith: "Built with",
+    builtBy: "by Satwinder",
   },
 
   heroVisual: {

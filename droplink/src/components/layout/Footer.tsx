@@ -19,9 +19,9 @@ export function Footer() {
             </span>
           </Link>
 
-          <p className="flex items-center gap-1.5 text-xs text-muted">
-            <Heart className="h-3 w-3 text-pink-400" />
-            {copy.footer.builtBy}
+          <p className="flex items-center gap-1 text-xs text-muted">
+            {copy.footer.builtWith}{" "}
+            <Heart className="h-3 w-3 text-pink-400" /> {copy.footer.builtBy}
           </p>
 
           <motion.a
