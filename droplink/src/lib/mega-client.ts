@@ -1,5 +1,6 @@
 "use client";
 
+import { Buffer } from "buffer";
 import type { SharedFile } from "./types";
 import { getFileExtension, inferMimeType } from "./utils";
 
@@ -148,13 +149,15 @@ export async function uploadToMega(
 
   onProgress?.(20);
 
+  const payload = Buffer.from(data);
+
   const uploadedFile = await folder
     .upload(
       {
         name: storageName,
-        size: data.byteLength,
+        size: payload.byteLength,
       },
-      data
+      payload
     )
     .complete;
 
