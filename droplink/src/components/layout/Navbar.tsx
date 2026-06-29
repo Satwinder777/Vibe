@@ -8,11 +8,12 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { hasUsedFreeUpload } from "@/lib/free-upload";
+import { copy } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { href: "#upload", label: "Upload" },
-  { href: "#features", label: "Features" },
+  { href: "#upload", label: copy.nav.upload },
+  { href: "#features", label: copy.nav.features },
 ];
 
 export function Navbar() {
@@ -71,7 +72,7 @@ export function Navbar() {
           <div className="flex items-center gap-2 sm:gap-3">
             {!user && !loading && (
               <span className="hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-muted sm:inline-block">
-                {freeUsed ? "Trial used" : "1 free upload"}
+                {freeUsed ? copy.nav.trialUsed : copy.nav.freeUpload}
               </span>
             )}
             <ThemeToggle />
@@ -98,13 +99,13 @@ export function Navbar() {
                       onClick={() => openAuth("signin")}
                       className="px-3 py-2 text-sm text-muted hover:text-foreground"
                     >
-                      Sign in
+                      {copy.nav.signIn}
                     </button>
                     <button
                       onClick={() => openAuth("signup")}
                       className="btn-primary rounded-lg px-4 py-2 text-sm font-semibold text-white"
                     >
-                      Sign Up
+                      {copy.nav.signUp}
                     </button>
                   </div>
                 )}
@@ -136,7 +137,7 @@ export function Navbar() {
                 onClick={() => openAuth("signup")}
                 className="btn-primary mt-2 w-full rounded-lg py-2.5 text-sm font-semibold text-white"
               >
-                Sign Up Free
+                {copy.nav.signUpFree}
               </button>
             )}
           </div>

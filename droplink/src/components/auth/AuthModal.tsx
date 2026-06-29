@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
+import { copy } from "@/lib/copy";
 
 interface AuthModalProps {
   open: boolean;
@@ -21,23 +22,27 @@ export function AuthModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, isConfigured } = useAuth();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (open) setMode(defaultMode);
+  }, [open, defaultMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || password.length < 6) {
-      showToast("Password must be at least 6 characters", "error");
+      showToast(copy.auth.passwordMin, "error");
       return;
     }
     setBusy(true);
     try {
       if (mode === "signup") {
         await signUp(email, password);
-        showToast("Account created! You can upload now.");
+        showToast(copy.auth.accountCreated);
       } else {
         await signIn(email, password);
-        showToast("Welcome back!");
+        showToast(copy.auth.welcomeBack);
       }
       onClose();
       setEmail("");
@@ -45,7 +50,7 @@ export function AuthModal({
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Authentication failed";
-      showToast(msg.replace("Firebase: ", ""), "error");
+      showToast(msg, "error");
     } finally {
       setBusy(false);
     }
@@ -85,20 +90,26 @@ export function AuthModal({
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
-                    {mode === "signup" ? "Create account" : "Welcome back"}
+                    {mode === "signup" ? copy.auth.createTitle : copy.auth.signInTitle}
                   </h2>
                   <p className="text-sm text-muted">
                     {mode === "signup"
-                      ? "Sign up to upload & track your files"
-                      : "Sign in to access your uploads"}
+                      ? copy.auth.createDesc
+                      : copy.auth.signInDesc}
                   </p>
                 </div>
               </div>
 
+              {!isConfigured && (
+                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  {copy.auth.notConfigured}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted">
-                    Email
+                    {copy.auth.email}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -107,14 +118,14 @@ export function AuthModal({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      placeholder="you@email.com"
+                      placeholder={copy.auth.emailPlaceholder}
                       className="w-full rounded-xl border border-border bg-background/50 py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
                     />
                   </div>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-medium text-muted">
-                    Password
+                    {copy.auth.password}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -134,16 +145,16 @@ export function AuthModal({
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   type="submit"
-                  disabled={busy}
+                  disabled={busy || !isConfigured}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:brightness-110 disabled:opacity-60"
                 >
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {mode === "signup" ? "Create Account" : "Sign In"}
+                  {mode === "signup" ? copy.auth.createCta : copy.auth.signInCta}
                 </motion.button>
               </form>
 
               <p className="mt-5 text-center text-sm text-muted">
-                {mode === "signup" ? "Already have an account?" : "New here?"}{" "}
+                {mode === "signup" ? copy.auth.hasAccount : copy.auth.newHere}{" "}
                 <button
                   type="button"
                   onClick={() =>
@@ -151,7 +162,7 @@ export function AuthModal({
                   }
                   className="font-medium text-accent hover:underline"
                 >
-                  {mode === "signup" ? "Sign in" : "Create account"}
+                  {mode === "signup" ? copy.auth.switchSignIn : copy.auth.switchSignUp}
                 </button>
               </p>
             </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Code2, Link2, Heart } from "lucide-react";
+import { copy } from "@/lib/copy";
 
 export function Footer() {
   return (
@@ -18,8 +19,9 @@ export function Footer() {
             </span>
           </Link>
 
-          <p className="flex items-center gap-1 text-xs text-muted">
-            Built with <Heart className="h-3 w-3 text-pink-400" /> by Satwinder
+          <p className="flex items-center gap-1.5 text-xs text-muted">
+            <Heart className="h-3 w-3 text-pink-400" />
+            {copy.footer.builtBy}
           </p>
 
           <motion.a

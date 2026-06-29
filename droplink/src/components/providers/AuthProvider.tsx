@@ -14,7 +14,8 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { auth, isFirebaseConfigured } from "@/lib/firebase";
+import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 
 interface AuthContextValue {
   user: User | null;
@@ -39,10 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isFirebaseConfigured();
 
   useEffect(() => {
-    if (!configured || !auth) {
+    if (!configured) {
       setLoading(false);
       return;
     }
+    const auth = getFirebaseAuth();
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
@@ -50,19 +52,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [configured]);
 
   const signUp = useCallback(async (email: string, password: string) => {
-    if (!auth) throw new Error("Firebase not configured");
-    await createUserWithEmailAndPassword(auth, email, password);
-  }, []);
+    if (!configured) throw new Error("Firebase not configured");
+    try {
+      const auth = getFirebaseAuth();
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
+  }, [configured]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    if (!auth) throw new Error("Firebase not configured");
-    await signInWithEmailAndPassword(auth, email, password);
-  }, []);
+    if (!configured) throw new Error("Firebase not configured");
+    try {
+      const auth = getFirebaseAuth();
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
+  }, [configured]);
 
   const logOut = useCallback(async () => {
-    if (!auth) return;
-    await signOut(auth);
-  }, []);
+    if (!configured) return;
+    await signOut(getFirebaseAuth());
+  }, [configured]);
 
   return (
     <AuthContext.Provider

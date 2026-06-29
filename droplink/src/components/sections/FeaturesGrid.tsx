@@ -17,26 +17,27 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { TiltCard } from "@/components/ui/TiltCard";
+import { copy } from "@/lib/copy";
 
 const liveFeatures = [
   {
     icon: Upload,
-    title: "Instant Upload",
-    desc: "Drag & drop any file. Get a shareable link in seconds.",
+    title: copy.featureItems.instantUpload.title,
+    desc: copy.featureItems.instantUpload.desc,
     color: "from-violet-500 to-purple-600",
     live: true,
   },
   {
     icon: Link2,
-    title: "Public Share Links",
-    desc: "Anyone with the link can view and download — no login needed.",
+    title: copy.featureItems.publicLinks.title,
+    desc: copy.featureItems.publicLinks.desc,
     color: "from-indigo-500 to-blue-600",
     live: true,
   },
   {
     icon: Sparkles,
-    title: "1 Free Upload",
-    desc: "Try without signing up. One file, one link — no history saved.",
+    title: copy.featureItems.freeTransfer.title,
+    desc: copy.featureItems.freeTransfer.desc,
     color: "from-emerald-500 to-teal-600",
     live: true,
   },
@@ -45,15 +46,15 @@ const liveFeatures = [
 const memberFeatures = [
   {
     icon: Infinity,
-    title: "Unlimited Uploads",
-    desc: "Sign up and upload as many files as you want.",
+    title: copy.featureItems.unlimited.title,
+    desc: copy.featureItems.unlimited.desc,
     color: "from-fuchsia-500 to-pink-600",
     live: true,
   },
   {
     icon: History,
-    title: "Upload Vault",
-    desc: "Your personal file history — manage, copy, and delete anytime.",
+    title: copy.featureItems.vault.title,
+    desc: copy.featureItems.vault.desc,
     color: "from-violet-500 to-indigo-600",
     live: true,
   },
@@ -62,44 +63,44 @@ const memberFeatures = [
 const comingSoon = [
   {
     icon: Lock,
-    title: "Password Links",
-    desc: "Protect files with a password before sharing.",
+    title: copy.featureItems.passwordLinks.title,
+    desc: copy.featureItems.passwordLinks.desc,
     color: "from-amber-500 to-orange-600",
   },
   {
     icon: Palette,
-    title: "Custom Aliases",
-    desc: "yourname.droplink/file instead of random IDs.",
+    title: copy.featureItems.aliases.title,
+    desc: copy.featureItems.aliases.desc,
     color: "from-cyan-500 to-blue-600",
   },
   {
     icon: Clock,
-    title: "Link Expiry",
-    desc: "Set auto-expiry — links vanish after your chosen time.",
+    title: copy.featureItems.expiry.title,
+    desc: copy.featureItems.expiry.desc,
     color: "from-rose-500 to-red-600",
   },
   {
     icon: Users,
-    title: "Team Workspaces",
-    desc: "Shared folders for teams with role-based access.",
+    title: copy.featureItems.teams.title,
+    desc: copy.featureItems.teams.desc,
     color: "from-purple-500 to-violet-600",
   },
   {
     icon: BarChart3,
-    title: "Upload Analytics",
-    desc: "Track views, downloads, and link performance.",
+    title: copy.featureItems.analytics.title,
+    desc: copy.featureItems.analytics.desc,
     color: "from-green-500 to-emerald-600",
   },
   {
     icon: Code2,
-    title: "Developer API",
-    desc: "Integrate DropLink uploads into your own apps.",
+    title: copy.featureItems.api.title,
+    desc: copy.featureItems.api.desc,
     color: "from-slate-500 to-zinc-600",
   },
   {
     icon: Shield,
-    title: "End-to-End Encryption",
-    desc: "Client-side encryption before upload — zero-knowledge storage.",
+    title: copy.featureItems.e2e.title,
+    desc: copy.featureItems.e2e.desc,
     color: "from-blue-500 to-indigo-600",
   },
 ];
@@ -147,12 +148,12 @@ function FeatureCard({
         </motion.div>
         {live && (
           <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-            Live
+            {copy.features.live}
           </span>
         )}
         {soon && (
           <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-            Soon
+            {copy.features.soon}
           </span>
         )}
       </div>
@@ -178,21 +179,19 @@ export function FeaturesGrid() {
           className="mb-12 text-center"
         >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
-            Features
+            {copy.features.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-black sm:text-5xl">
-            Built for now.{" "}
-            <span className="gradient-text">Ready for tomorrow.</span>
+            {copy.features.title}{" "}
+            <span className="gradient-text">{copy.features.titleAccent}</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted">
-            {user
-              ? "You have full access to all live features. More power coming soon."
-              : "Start with 1 free upload. Unlock everything with a free account."}
+            {user ? copy.features.descMember : copy.features.descGuest}
           </p>
         </motion.div>
 
         <div className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted">
-          Available now
+          {copy.features.available}
         </div>
         <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {liveFeatures.map((f) => (
@@ -204,7 +203,7 @@ export function FeaturesGrid() {
         </div>
 
         <div className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted">
-          Coming soon
+          {copy.features.comingSoon}
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {comingSoon.map((f) => (

@@ -21,6 +21,7 @@ import { formatFileSize, formatDate, getFileCategory } from "@/lib/utils";
 import { getFileById, downloadFileBlob } from "@/lib/mega-client";
 import type { SharedFile } from "@/lib/types";
 import { getShareUrl } from "@/lib/utils";
+import { copy } from "@/lib/copy";
 
 function ShareContent() {
   const searchParams = useSearchParams();
@@ -34,7 +35,7 @@ function ShareContent() {
 
   useEffect(() => {
     if (!fileId) {
-      setError("No file ID provided.");
+      setError(copy.share.noId);
       setLoading(false);
       return;
     }
@@ -49,7 +50,7 @@ function ShareContent() {
         }
       })
       .catch(() =>
-        setError("This file doesn't exist or has been removed.")
+        setError(copy.share.notFoundDefault)
       )
       .finally(() => setLoading(false));
 
@@ -64,7 +65,7 @@ function ShareContent() {
   const copyLink = async () => {
     if (!file) return;
     await navigator.clipboard.writeText(shareUrl);
-    showToast("Link copied!");
+    showToast(copy.share.toastCopied);
   };
 
   const handleDownload = async () => {
@@ -78,9 +79,9 @@ function ShareContent() {
       a.download = file.name;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("Download started!");
+      showToast(copy.share.toastDownload);
     } catch {
-      showToast("Download failed", "error");
+      showToast(copy.share.toastDownloadFail, "error");
     } finally {
       setDownloading(false);
     }
@@ -98,7 +99,7 @@ function ShareContent() {
             className="flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to DropLink
+            {copy.share.back}
           </Link>
           <ThemeToggle />
         </div>
@@ -108,7 +109,7 @@ function ShareContent() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-accent" />
-            <p className="mt-4 text-muted">Loading file...</p>
+            <p className="mt-4 text-muted">{copy.share.loading}</p>
           </div>
         )}
 
@@ -121,13 +122,13 @@ function ShareContent() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10">
               <Link2 className="h-8 w-8 text-red-400" />
             </div>
-            <h1 className="text-xl font-bold">File Not Found</h1>
+            <h1 className="text-xl font-bold">{copy.share.notFoundTitle}</h1>
             <p className="mt-2 text-muted">{error}</p>
             <Link
               href={`${basePath}/`}
               className="mt-6 inline-flex rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white"
             >
-              Upload a new file
+              {copy.share.uploadNew}
             </Link>
           </motion.div>
         )}
@@ -157,7 +158,7 @@ function ShareContent() {
                     <h1 className="text-xl font-bold break-all sm:text-2xl">
                       {file.name}
                     </h1>
-                    <p className="mt-1 text-sm text-muted">Shared via DropLink</p>
+                    <p className="mt-1 text-sm text-muted">{copy.share.sharedVia}</p>
                   </div>
                 </div>
 
@@ -165,7 +166,7 @@ function ShareContent() {
                   <div className="rounded-xl bg-surface-elevated p-3">
                     <div className="flex items-center gap-2 text-xs text-muted">
                       <HardDrive className="h-3.5 w-3.5" />
-                      Size
+                      {copy.share.size}
                     </div>
                     <p className="mt-1 text-sm font-semibold">
                       {formatFileSize(file.size)}
@@ -174,7 +175,7 @@ function ShareContent() {
                   <div className="rounded-xl bg-surface-elevated p-3">
                     <div className="flex items-center gap-2 text-xs text-muted">
                       <FileType className="h-3.5 w-3.5" />
-                      Type
+                      {copy.share.type}
                     </div>
                     <p className="mt-1 text-sm font-semibold uppercase">
                       {file.extension || "file"}
@@ -183,7 +184,7 @@ function ShareContent() {
                   <div className="col-span-2 rounded-xl bg-surface-elevated p-3 sm:col-span-1">
                     <div className="flex items-center gap-2 text-xs text-muted">
                       <Calendar className="h-3.5 w-3.5" />
-                      Uploaded
+                      {copy.share.uploaded}
                     </div>
                     <p className="mt-1 text-sm font-semibold">
                       {formatDate(file.uploadedAt)}
@@ -204,7 +205,7 @@ function ShareContent() {
                     ) : (
                       <Download className="h-4 w-4" />
                     )}
-                    Download File
+                    {copy.share.download}
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -213,7 +214,7 @@ function ShareContent() {
                     className="flex items-center justify-center gap-2 rounded-xl border border-border px-6 py-3.5 text-sm font-semibold transition-colors hover:border-accent/40 hover:text-accent"
                   >
                     <Copy className="h-4 w-4" />
-                    Copy Link
+                    {copy.share.copyLink}
                   </motion.button>
                 </div>
               </div>
@@ -224,7 +225,7 @@ function ShareContent() {
               <Link href={`${basePath}/`} className="text-accent hover:underline">
                 DropLink
               </Link>{" "}
-              · Secure file sharing
+              · {copy.share.footer}
             </p>
           </motion.div>
         )}

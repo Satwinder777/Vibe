@@ -18,7 +18,9 @@ import {
   getFileById,
   isMegaConfigured,
 } from "@/lib/mega-client";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
 import { getUserUploads, deleteUserUpload } from "@/lib/user-uploads";
+import { copy } from "@/lib/copy";
 import type { UploadResult } from "@/lib/types";
 
 interface FileDashboardProps {
@@ -63,8 +65,8 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
         })
       );
       setFiles(mapped);
-    } catch {
-      showToast("Failed to load uploads", "error");
+    } catch (err) {
+      showToast(getAuthErrorMessage(err), "error");
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
 
   const copyLink = async (url: string) => {
     await navigator.clipboard.writeText(url);
-    showToast("Link copied!");
+    showToast(copy.vault.toastCopied);
   };
 
   const deleteFile = async (id: string) => {
@@ -92,9 +94,9 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
       await deleteMegaFile(id);
       await deleteUserUpload(user.uid, id);
       setFiles((prev) => prev.filter((f) => f.id !== id));
-      showToast("File deleted");
+      showToast(copy.vault.toastDeleted);
     } catch {
-      showToast("Failed to delete", "error");
+      showToast(copy.vault.toastDeleteFail, "error");
     }
   };
 
@@ -108,13 +110,13 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
             <FolderOpen className="h-6 w-6 text-accent" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Your Vault</h2>
+            <h2 className="text-2xl font-bold">{copy.vault.title}</h2>
             <p className="text-sm text-muted">
               {loading
-                ? "Loading..."
+                ? copy.vault.loading
                 : files.length === 0
-                  ? "No uploads yet"
-                  : `${files.length} file${files.length !== 1 ? "s" : ""} saved`}
+                  ? copy.vault.empty
+                  : copy.vault.count(files.length)}
             </p>
           </div>
         </div>
@@ -130,7 +132,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
           </div>
         ) : files.length === 0 ? (
           <div className="bento-card p-10 text-center">
-            <p className="text-muted">Upload your first file above — it&apos;ll appear here.</p>
+            <p className="text-muted">{copy.vault.emptyHint}</p>
           </div>
         ) : (
           <div className="space-y-3">

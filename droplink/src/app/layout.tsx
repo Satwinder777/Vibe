@@ -7,6 +7,7 @@ import { CursorProvider } from "@/components/providers/CursorProvider";
 import { Background } from "@/components/ui/Background";
 import { CursorEffects } from "@/components/ui/CursorEffects";
 import "./globals.css";
+import { copy } from "@/lib/copy";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,13 +20,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DropLink — Instant File Sharing",
-  description:
-    "Share files instantly. 1 free upload without signup, or create an account for unlimited uploads and file vault.",
+  title: copy.metadata.title,
+  description: copy.metadata.description,
   keywords: ["file sharing", "cloud storage", "MEGA", "upload", "share link"],
   openGraph: {
-    title: "DropLink — Instant File Sharing",
-    description: "Share any file instantly with a single link.",
+    title: copy.metadata.title,
+    description: copy.metadata.ogDescription,
     type: "website",
   },
 };

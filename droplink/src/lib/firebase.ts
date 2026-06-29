@@ -1,5 +1,10 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  type Auth,
+} from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -23,11 +28,31 @@ export function isFirebaseConfigured(): boolean {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let authReady: Promise<void> | null = null;
 
-if (isFirebaseConfigured()) {
-  app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
+function ensureFirebaseApp(): FirebaseApp {
+  if (!isFirebaseConfigured()) {
+    throw new Error("Firebase not configured");
+  }
+  if (!app) {
+    app = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
+  }
+  return app;
 }
 
-export { auth, db };
+export function getFirebaseAuth(): Auth {
+  if (!auth) {
+    auth = getAuth(ensureFirebaseApp());
+    authReady ??= setPersistence(auth, browserLocalPersistence).catch(() => {
+      authReady = null;
+    });
+  }
+  return auth;
+}
+
+export function getFirebaseDb(): Firestore {
+  if (!db) {
+    db = getFirestore(ensureFirebaseApp());
+  }
+  return db;
+}

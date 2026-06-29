@@ -23,6 +23,7 @@ import { getShareUrl } from "@/lib/utils";
 import { uploadToMega, isMegaConfigured } from "@/lib/mega-client";
 import { saveUserUpload } from "@/lib/user-uploads";
 import { hasUsedFreeUpload, markFreeUploadUsed } from "@/lib/free-upload";
+import { copy } from "@/lib/copy";
 import type { UploadProgress, UploadResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -69,17 +70,17 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
       if (!user && freeUsed) {
         setAuthOpen(true);
-        showToast("Free upload used — sign up for unlimited uploads", "error");
+        showToast(copy.upload.toastFreeUsed, "error");
         return;
       }
 
       if (!user && fileArray.length > 1) {
-        showToast("Guest users can upload 1 file only", "error");
+        showToast(copy.upload.toastGuestLimit, "error");
         fileArray = [fileArray[0]];
       }
 
       if (!isMegaConfigured()) {
-        showToast("MEGA not configured", "error");
+        showToast(copy.upload.toastMegaMissing, "error");
         return;
       }
 
@@ -130,7 +131,16 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           };
 
           if (user) {
-            await saveUserUpload(user.uid, result);
+            try {
+              await saveUserUpload(user.uid, result);
+            } catch (vaultErr) {
+              showToast(
+                copy.upload.toastVaultFail(
+                  vaultErr instanceof Error ? vaultErr.message : "check Firestore rules"
+                ),
+                "error"
+              );
+            }
           } else {
             markFreeUploadUsed();
             setFreeUsed(true);
@@ -147,7 +157,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           onUploadComplete(result);
 
           if (!user) {
-            showToast("Free upload done! Sign up to upload more.");
+            showToast(copy.upload.toastGuestDone);
           }
         } catch (error) {
           setUploads((prev) =>
@@ -184,7 +194,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
   const copyLink = async (url: string) => {
     await navigator.clipboard.writeText(url);
-    showToast("Link copied!");
+    showToast(copy.upload.toastLinkCopied);
   };
 
   return (
@@ -209,12 +219,12 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             )}
             <div>
               <p className="text-sm font-semibold">
-                {freeUsed ? "Free upload used" : "Guest mode — 1 free upload"}
+                {freeUsed ? copy.upload.bannerUsedTitle : copy.upload.bannerGuestTitle}
               </p>
               <p className="mt-0.5 text-xs text-muted">
                 {freeUsed
-                  ? "You've used your free upload. Sign up or login for unlimited files + upload history."
-                  : "Upload 1 file without an account. You'll get a share link — but no history. Sign up for unlimited uploads."}
+                  ? copy.upload.bannerUsedDesc
+                  : copy.upload.bannerGuestDesc}
               </p>
             </div>
           </motion.div>
@@ -275,11 +285,10 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                   <Lock className="h-12 w-12 text-amber-400" />
                 </motion.div>
                 <h2 className="text-2xl font-bold sm:text-3xl">
-                  Free upload used
+                  {copy.upload.lockedTitle}
                 </h2>
                 <p className="mt-3 max-w-sm text-center text-muted">
-                  Create an account for unlimited uploads, file history, and
-                  more features coming soon.
+                  {copy.upload.lockedDesc}
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -291,7 +300,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                   className="btn-neon pointer-events-auto mt-8 flex items-center gap-2 rounded-2xl px-8 py-3.5 text-sm font-bold text-white"
                 >
                   <Sparkles className="h-4 w-4" />
-                  Sign Up Free
+                  {copy.upload.lockedCta}
                 </motion.button>
               </>
             ) : (
@@ -313,27 +322,27 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
                 <h2 className="text-2xl font-bold sm:text-3xl">
                   {isDragging
-                    ? "Release to upload"
+                    ? copy.upload.dragRelease
                     : isGuest
-                      ? "Drop your free file here"
-                      : "Drag & drop files here"}
+                      ? copy.upload.dragGuest
+                      : copy.upload.dragMember}
                 </h2>
                 <p className="mt-3 text-center text-muted">
-                  or{" "}
+                  {copy.upload.dragOr}{" "}
                   <span className="font-semibold text-accent">
-                    click to browse
+                    {copy.upload.dragBrowse}
                   </span>
                 </p>
 
                 <div className="mt-6 flex flex-wrap justify-center gap-2">
                   <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
-                    {isGuest ? "1 file only" : "Multiple files"}
+                    {isGuest ? copy.upload.pillOneFile : copy.upload.pillMulti}
                   </span>
                   <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
-                    MEGA secure
+                    {copy.upload.pillMega}
                   </span>
                   <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted backdrop-blur-sm">
-                    Instant link
+                    {copy.upload.pillInstant}
                   </span>
                 </div>
               </>
@@ -372,7 +381,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                           <div className="min-w-0 flex-1">
                             <p className="flex items-center gap-1 text-xs font-medium text-emerald-400">
                               <Link2 className="h-3 w-3" />
-                              Your link is ready
+                              {copy.upload.linkReady}
                             </p>
                             <p className="truncate font-mono text-xs text-muted">
                               {upload.result.shareUrl}
@@ -386,7 +395,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                             className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-500/20 px-2.5 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-500/30"
                           >
                             <Copy className="h-3 w-3" />
-                            Copy
+                            {copy.upload.copy}
                           </button>
                         </div>
                       )}

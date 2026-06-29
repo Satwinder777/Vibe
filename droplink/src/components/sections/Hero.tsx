@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Gift, Zap, ArrowRight, Shield, Cloud } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { hasUsedFreeUpload } from "@/lib/free-upload";
+import { copy } from "@/lib/copy";
 import { useEffect, useState } from "react";
 import { HeroVisual } from "./HeroVisual";
 
@@ -27,10 +28,10 @@ export function Hero() {
             >
               <Gift className="h-3.5 w-3.5 text-violet-400" />
               {user
-                ? "Pro member · Unlimited uploads"
+                ? copy.hero.badgeMember
                 : freeUsed
-                  ? "Free trial used"
-                  : "1 free upload — no account needed"}
+                  ? copy.hero.badgeTrialUsed
+                  : copy.hero.badgeGuest}
             </motion.div>
 
             <motion.h1
@@ -39,8 +40,8 @@ export function Hero() {
               transition={{ delay: 0.08 }}
               className="text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
             >
-              Share files in a{" "}
-              <span className="gradient-text">flow.</span>
+              {copy.hero.headline}{" "}
+              <span className="gradient-text">{copy.hero.headlineAccent}</span>
             </motion.h1>
 
             <motion.p
@@ -49,9 +50,7 @@ export function Hero() {
               transition={{ delay: 0.16 }}
               className="mt-5 max-w-lg text-base leading-relaxed text-muted/90 sm:text-lg"
             >
-              {user
-                ? "Upload unlimited files, manage your vault, and share secure links instantly."
-                : "Drop a file, get a link. One free try without signup — then unlock your full file vault."}
+              {user ? copy.hero.descMember : copy.hero.descGuest}
             </motion.p>
 
             <motion.div
@@ -66,16 +65,16 @@ export function Hero() {
               >
                 <Zap className="h-4 w-4" />
                 {user
-                  ? "Upload Now"
+                  ? copy.hero.ctaUpload
                   : freeUsed
-                    ? "Create Account"
-                    : "Try Free Upload"}
+                    ? copy.hero.ctaAccount
+                    : copy.hero.ctaFree}
               </a>
               <a
                 href="#features"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold backdrop-blur-md transition-colors hover:bg-white/[0.08]"
               >
-                Features
+                {copy.hero.ctaFeatures}
                 <ArrowRight className="h-4 w-4 opacity-50" />
               </a>
             </motion.div>
@@ -87,9 +86,9 @@ export function Hero() {
               className="mt-10 flex flex-wrap gap-5"
             >
               {[
-                { icon: Zap, label: "Instant links" },
-                { icon: Shield, label: "MEGA encrypted" },
-                { icon: Cloud, label: "Cloud storage" },
+                { icon: Zap, label: copy.hero.trustInstant },
+                { icon: Shield, label: copy.hero.trustEncrypted },
+                { icon: Cloud, label: copy.hero.trustCloud },
               ].map(({ icon: Icon, label }) => (
                 <span
                   key={label}
