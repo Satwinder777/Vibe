@@ -5,7 +5,7 @@ import { Gift, Zap, ArrowRight, Shield, Cloud } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { hasUsedFreeUpload } from "@/lib/free-upload";
 import { useEffect, useState } from "react";
-import { HeroShowcase } from "./HeroShowcase";
+import { HeroVisual } from "./HeroVisual";
 
 export function Hero() {
   const { user } = useAuth();
@@ -108,7 +108,7 @@ export function Hero() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="hidden sm:block"
           >
-            <HeroShowcase />
+            <HeroVisual />
           </motion.div>
         </div>
       </div>
