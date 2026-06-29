@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { Background } from "@/components/ui/Background";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DropLink — Instant File Sharing",
   description:
-    "Share any file instantly with a single link. Drag, drop, and share — powered by MEGA cloud storage. No signup required.",
+    "Share any file instantly with a single link. Sign up, upload, and track your files — powered by MEGA cloud storage.",
   keywords: ["file sharing", "cloud storage", "MEGA", "upload", "share link"],
   openGraph: {
     title: "DropLink — Instant File Sharing",
@@ -39,7 +41,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <Background />
+              {children}
+            </ToastProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

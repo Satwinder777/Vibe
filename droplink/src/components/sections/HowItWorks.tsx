@@ -1,43 +1,56 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Upload, Link2, Share2 } from "lucide-react";
+import { UserPlus, Upload, Link2, Share2 } from "lucide-react";
 
 const steps = [
   {
-    icon: Upload,
-    title: "Upload",
+    icon: UserPlus,
+    title: "Create account",
     description:
-      "Drag and drop any file or click to browse. Multiple files at once — no account needed.",
+      "Sign up free in seconds. Your uploads are saved to your personal history.",
     color: "from-violet-500 to-purple-600",
     shadow: "shadow-violet-500/25",
   },
   {
-    icon: Link2,
-    title: "Get Link",
+    icon: Upload,
+    title: "Upload files",
     description:
-      "We instantly generate a unique public link for each file, stored securely on MEGA cloud.",
+      "Drag and drop any file. Multiple uploads at once, stored securely on MEGA.",
     color: "from-indigo-500 to-blue-600",
     shadow: "shadow-indigo-500/25",
   },
   {
-    icon: Share2,
-    title: "Share",
+    icon: Link2,
+    title: "Get share link",
     description:
-      "Send the link to anyone. They can view file details and download — no login required.",
-    color: "from-purple-500 to-pink-600",
+      "Each file gets a unique public link instantly. Copy and share anywhere.",
+    color: "from-purple-500 to-fuchsia-600",
     shadow: "shadow-purple-500/25",
+  },
+  {
+    icon: Share2,
+    title: "Share anywhere",
+    description:
+      "Anyone with the link can view and download — no account needed for recipients.",
+    color: "from-fuchsia-500 to-pink-600",
+    shadow: "shadow-fuchsia-500/25",
   },
 ];
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.15 } },
+  show: { transition: { staggerChildren: 0.12 } },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.5, type: "spring" as const, stiffness: 200 },
+  },
 };
 
 export function HowItWorks() {
@@ -54,7 +67,7 @@ export function HowItWorks() {
             How it <span className="gradient-text">works</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted">
-            Three simple steps to share any file with the world
+            Four simple steps from signup to share
           </p>
         </motion.div>
 
@@ -63,31 +76,39 @@ export function HowItWorks() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
-          className="relative mt-16 grid gap-8 md:grid-cols-3"
+          className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <div className="pointer-events-none absolute top-24 left-[16.67%] right-[16.67%] hidden h-px bg-gradient-to-r from-transparent via-border to-transparent md:block" />
-
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
               variants={item}
-              className="relative text-center"
+              whileHover={{
+                y: -8,
+                scale: 1.03,
+                transition: { type: "spring", stiffness: 400 },
+              }}
+              className="glass-card group relative cursor-default rounded-3xl p-6 text-center"
             >
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center">
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${step.color} shadow-lg ${step.shadow}`}
-                >
-                  <step.icon className="h-7 w-7 text-white" />
-                </motion.div>
-                <span className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-surface-elevated text-xs font-bold ring-2 ring-background md:left-1/2 md:-translate-x-1/2 md:-top-4">
-                  {index + 1}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold">{step.title}</h3>
+              <motion.span
+                className="absolute right-4 top-4 text-xs font-bold text-muted/40"
+                whileHover={{ scale: 1.2, color: "var(--accent)" }}
+              >
+                0{index + 1}
+              </motion.span>
+              <motion.div
+                whileHover={{ scale: 1.15, rotate: 8 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${step.color} shadow-lg ${step.shadow} transition-shadow group-hover:shadow-xl`}
+              >
+                <step.icon className="h-6 w-6 text-white" />
+              </motion.div>
+              <h3 className="text-base font-semibold transition-colors group-hover:text-accent">
+                {step.title}
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">
                 {step.description}
               </p>
+              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/0 to-transparent transition-all group-hover:via-violet-500/50" />
             </motion.div>
           ))}
         </motion.div>

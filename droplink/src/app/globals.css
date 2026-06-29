@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa;
-  --foreground: #0f0f12;
-  --surface: #ffffff;
-  --surface-elevated: #f4f4f5;
-  --border: #e4e4e7;
-  --muted: #71717a;
+  --background: #f8f7ff;
+  --foreground: #0c0a14;
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --border: rgba(124, 58, 237, 0.12);
+  --muted: #6b7280;
   --accent: #7c3aed;
   --accent-secondary: #6366f1;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --surface: #18181b;
-  --surface-elevated: #27272a;
-  --border: #3f3f46;
-  --muted: #a1a1aa;
+  --background: #06050a;
+  --foreground: #f4f2ff;
+  --surface: rgba(18, 16, 28, 0.75);
+  --surface-elevated: rgba(28, 25, 42, 0.9);
+  --border: rgba(167, 139, 250, 0.15);
+  --muted: #9ca3af;
   --accent: #a78bfa;
   --accent-secondary: #818cf8;
 }
@@ -50,10 +50,190 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #c084fc 100%);
+  background: linear-gradient(
+    135deg,
+    #a78bfa 0%,
+    #818cf8 35%,
+    #c084fc 65%,
+    #a78bfa 100%
+  );
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
+.glass-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow:
+    0 4px 24px rgba(124, 58, 237, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow:
+    0 12px 40px rgba(124, 58, 237, 0.15),
+    0 0 0 1px rgba(124, 58, 237, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.dark .glass-card {
+  box-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass-card:hover {
+  box-shadow:
+    0 16px 48px rgba(124, 58, 237, 0.2),
+    0 0 0 1px rgba(167, 139, 250, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glow-ring {
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.2),
+    0 0 40px rgba(124, 58, 237, 0.15);
+  transition: box-shadow 0.4s ease;
+}
+
+.glow-ring:hover {
+  box-shadow:
+    0 0 0 1px rgba(124, 58, 237, 0.4),
+    0 0 60px rgba(124, 58, 237, 0.25),
+    0 0 100px rgba(99, 102, 241, 0.1);
+}
+
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    filter 0.25s ease;
+}
+
+.btn-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.4);
+  filter: brightness(1.08);
+}
+
+.btn-glow:hover::before {
+  transform: translateX(100%);
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.shimmer-border {
+  position: relative;
+}
+
+.shimmer-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(124, 58, 237, 0.5),
+    rgba(99, 102, 241, 0.5),
+    transparent
+  );
+  background-size: 200% 100%;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: shimmer 3s linear infinite;
+  pointer-events: none;
+}
+
+.shimmer-border:hover::before {
+  opacity: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 ::selection {

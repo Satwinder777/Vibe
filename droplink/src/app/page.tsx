@@ -7,7 +7,6 @@ import { Hero } from "@/components/sections/Hero";
 import { UploadZone } from "@/components/sections/UploadZone";
 import { FileDashboard } from "@/components/sections/FileDashboard";
 import { HowItWorks } from "@/components/sections/HowItWorks";
-import { Pricing } from "@/components/sections/Pricing";
 import type { UploadResult } from "@/lib/types";
 
 export default function HomePage() {
@@ -25,7 +24,6 @@ export default function HomePage() {
         <UploadZone onUploadComplete={handleUploadComplete} />
         <FileDashboard refreshTrigger={refreshTrigger} />
         <HowItWorks />
-        <Pricing />
       </main>
       <Footer />
     </>
