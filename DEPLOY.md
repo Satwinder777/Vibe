@@ -6,7 +6,17 @@ Primary live URL. Builds always use base path `/Vibe` and app URL `https://satwi
 
 ## One-time: Enable GitHub Pages
 
-Open **[Satwinder777/Vibe → Settings → Pages](https://github.com/Satwinder777/Vibe/settings/pages)** and set:
+Open **[Satwinder777/Vibe → Settings → Pages](https://github.com/Satwinder777/Vibe/settings/pages)**.
+
+### Option A — GitHub Actions (recommended)
+
+| Setting | Value |
+|---------|-------|
+| **Source** | **GitHub Actions** |
+
+Then push to `main` (or run the workflow manually). First run may ask you to approve the `github-pages` environment.
+
+### Option B — Branch deploy
 
 | Setting | Value |
 |---------|-------|
@@ -14,9 +24,7 @@ Open **[Satwinder777/Vibe → Settings → Pages](https://github.com/Satwinder77
 | **Branch** | `gh-pages` |
 | **Folder** | `/ (root)` |
 
-Save. The site goes live at **https://satwinder777.github.io/Vibe/** within 1–2 minutes.
-
-> If you see a 404, Pages is not enabled yet — the build files are already on `gh-pages`.
+> **Common 404 cause:** Source set to `main` — that branch has source code, not the built site. Use **GitHub Actions** or **`gh-pages`**.
 
 ---
 
