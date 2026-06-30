@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, KeyRound, Loader2 } from "lucide-react";
+import { X, KeyRound, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { copy } from "@/lib/copy";
@@ -15,6 +15,8 @@ interface MasterUnlockModalProps {
 export function MasterUnlockModal({ open, onClose }: MasterUnlockModalProps) {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showToken, setShowToken] = useState(false);
   const { unlockWithToken, isAccessTokenConfigured } = useAuth();
   const { showToast } = useToast();
 
@@ -22,16 +24,14 @@ export function MasterUnlockModal({ open, onClose }: MasterUnlockModalProps) {
     e.preventDefault();
     if (!token.trim()) return;
     setBusy(true);
+    setError(null);
     try {
       await unlockWithToken(token.trim());
       showToast(copy.master.unlocked);
       setToken("");
       onClose();
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : copy.master.invalid,
-        "error"
-      );
+      setError(err instanceof Error ? err.message : copy.master.invalid);
     } finally {
       setBusy(false);
     }
@@ -85,16 +85,39 @@ export function MasterUnlockModal({ open, onClose }: MasterUnlockModalProps) {
                   <label className="mb-1.5 block text-xs font-medium text-muted">
                     {copy.master.tokenLabel}
                   </label>
-                  <input
-                    type="password"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    required
-                    autoComplete="off"
-                    placeholder={copy.master.tokenPlaceholder}
-                    className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 font-mono text-sm outline-none transition-colors focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showToken ? "text" : "password"}
+                      value={token}
+                      onChange={(e) => {
+                        setToken(e.target.value);
+                        if (error) setError(null);
+                      }}
+                      required
+                      autoComplete="off"
+                      placeholder={copy.master.tokenPlaceholder}
+                      className="w-full rounded-xl border border-border bg-background/50 py-3 pl-4 pr-11 font-mono text-sm outline-none transition-colors focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowToken((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted transition-colors hover:text-foreground"
+                      aria-label={showToken ? "Hide token" : "Show token"}
+                    >
+                      {showToken ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {error && (
+                  <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    {error}
+                  </p>
+                )}
 
                 <motion.button
                   whileHover={{ scale: 1.01 }}

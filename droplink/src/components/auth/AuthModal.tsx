@@ -22,20 +22,25 @@ export function AuthModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { signUp, signIn, isConfigured } = useAuth();
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (open) setMode(defaultMode);
+    if (open) {
+      setMode(defaultMode);
+      setError(null);
+    }
   }, [open, defaultMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || password.length < 6) {
-      showToast(copy.auth.passwordMin, "error");
+      setError(copy.auth.passwordMin);
       return;
     }
     setBusy(true);
+    setError(null);
     try {
       if (mode === "signup") {
         await signUp(email, password);
@@ -48,9 +53,9 @@ export function AuthModal({
       setEmail("");
       setPassword("");
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Authentication failed";
-      showToast(msg, "error");
+      setError(
+        err instanceof Error ? err.message : "Authentication failed"
+      );
     } finally {
       setBusy(false);
     }
@@ -116,7 +121,10 @@ export function AuthModal({
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (error) setError(null);
+                      }}
                       required
                       placeholder={copy.auth.emailPlaceholder}
                       className="w-full rounded-xl border border-border bg-background/50 py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20"
@@ -132,7 +140,10 @@ export function AuthModal({
                     <input
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (error) setError(null);
+                      }}
                       required
                       minLength={6}
                       placeholder="••••••••"
@@ -140,6 +151,12 @@ export function AuthModal({
                     />
                   </div>
                 </div>
+
+                {error && (
+                  <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    {error}
+                  </p>
+                )}
 
                 <motion.button
                   whileHover={{ scale: 1.01 }}
