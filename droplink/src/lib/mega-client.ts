@@ -2,6 +2,7 @@
 
 import type { SharedFile } from "./types";
 import { getFileExtension, inferMimeType } from "./utils";
+import { Storage } from "./mega-sdk";
 
 const SHARE_PREFIX = "dl_";
 
@@ -71,7 +72,6 @@ function resetStorage() {
 
 async function getStorage(): Promise<MegaStorage> {
   if (!storagePromise) {
-    const { Storage } = await import("megajs");
     const { email, password } = getCredentials();
     storagePromise = new Storage({ email, password }).ready;
   }
@@ -88,37 +88,17 @@ async function getReadyStorage(): Promise<MegaStorage> {
   return storage;
 }
 
-function toMegaPayload(data: Uint8Array): MegaBuffer {
-  // Copy into a plain ArrayBuffer-backed Uint8Array for megajs stream handling.
-  const copy = new Uint8Array(data.byteLength);
-  copy.set(data);
-  return copy as unknown as MegaBuffer;
-}
 
 async function uploadOnFolder(
   folder: MutableFile,
   name: string,
   data: Uint8Array
 ): Promise<MutableFile> {
-  const payload = toMegaPayload(data);
-  const size = payload.byteLength;
-
-  if (size <= 0) {
+  if (data.byteLength <= 0) {
     throw new Error("Cannot upload an empty file.");
   }
 
-  return folder
-    .upload(
-      {
-        name,
-        size,
-        allowUploadBuffering: true,
-      } as Parameters<MutableFile["upload"]>[0] & {
-        allowUploadBuffering: boolean;
-      },
-      payload
-    )
-    .complete;
+  return folder.upload(name, data as unknown as MegaBuffer).complete;
 }
 
 async function resolveUploadFolder(storage: MegaStorage): Promise<MutableFile> {
