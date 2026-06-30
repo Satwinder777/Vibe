@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { FileIcon } from "@/components/ui/FileIcon";
+import { ShareQrCard } from "@/components/ui/ShareQrButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useToast } from "@/components/providers/ToastProvider";
 import { formatFileSize, formatDate, getFileCategory } from "@/lib/utils";
@@ -191,6 +192,8 @@ function ShareContent() {
                     </p>
                   </div>
                 </div>
+
+                <ShareQrCard url={shareUrl} className="mt-6" />
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <motion.button

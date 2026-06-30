@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Trash2, ExternalLink, FolderOpen } from "lucide-react";
+import { ShareQrButton } from "@/components/ui/ShareQrButton";
 import { FileIcon } from "@/components/ui/FileIcon";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -172,6 +173,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
                       </p>
                     </div>
                     <div className="flex shrink-0 gap-1.5">
+                      <ShareQrButton url={file.shareUrl} />
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}

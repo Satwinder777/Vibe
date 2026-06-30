@@ -64,6 +64,18 @@ export const copy = {
     pillInstant: "Instant link",
     linkReady: "Share link generated",
     copy: "Copy",
+    qr: "QR",
+  },
+
+  qr: {
+    title: "Share via QR code",
+    subtitle: "Scan to open the download page instantly.",
+    scanTitle: "Scan to download",
+    scanSubtitle: "Point your camera at the code to open this file.",
+    show: "Show QR code",
+    download: "Download QR",
+    toastCopied: "Share link copied to clipboard.",
+    toastDownloaded: "QR code saved to your device.",
   },
 
   vault: {

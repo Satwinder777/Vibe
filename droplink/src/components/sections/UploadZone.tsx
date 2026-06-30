@@ -17,6 +17,7 @@ import {
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { FileIcon } from "@/components/ui/FileIcon";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { ShareQrButton } from "@/components/ui/ShareQrButton";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { getShareUrl } from "@/lib/utils";
@@ -387,6 +388,10 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                               {upload.result.shareUrl}
                             </p>
                           </div>
+                          <ShareQrButton
+                            url={upload.result.shareUrl}
+                            label={copy.upload.qr}
+                          />
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
