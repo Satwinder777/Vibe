@@ -8,6 +8,8 @@ export const copy = {
 
   nav: {
     upload: "Upload",
+    vault: "Vault",
+    howItWorks: "How it works",
     features: "Features",
     signIn: "Sign in",
     signUp: "Get started",
@@ -37,7 +39,7 @@ export const copy = {
 
   upload: {
     toastFreeUsed: "Guest transfer used. Sign in to continue uploading.",
-    toastGuestLimit: "Guest accounts are limited to one file per session.",
+    toastGuestLimit: "Guest accounts are limited to one complimentary transfer.",
     toastMegaMissing: "Storage is not configured. Please try again later.",
     toastVaultFail: (detail: string) =>
       `File uploaded, but vault sync failed: ${detail}`,
@@ -126,6 +128,34 @@ export const copy = {
     soon: "Soon",
   },
 
+  howItWorks: {
+    title: "How it",
+    titleAccent: "works",
+    subtitle: "Four simple steps from upload to share",
+    steps: [
+      {
+        title: "Create your account",
+        description:
+          "Register in seconds to unlock unlimited transfers and your personal vault.",
+      },
+      {
+        title: "Upload your files",
+        description:
+          "Drag and drop any file. Batch uploads are stored securely on MEGA cloud.",
+      },
+      {
+        title: "Get your share link",
+        description:
+          "Each file receives a unique public URL instantly — plus a scannable QR code.",
+      },
+      {
+        title: "Share anywhere",
+        description:
+          "Send the link or QR to anyone. Recipients download without creating an account.",
+      },
+    ],
+  },
+
   featureItems: {
     instantUpload: {
       title: "Instant upload",
@@ -146,6 +176,10 @@ export const copy = {
     vault: {
       title: "Personal vault",
       desc: "Review, copy, and manage every file you've shared — all in one place.",
+    },
+    qrShare: {
+      title: "QR share codes",
+      desc: "Every link includes a downloadable QR code for instant mobile sharing.",
     },
     passwordLinks: {
       title: "Password-protected links",

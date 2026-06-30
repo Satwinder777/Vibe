@@ -14,6 +14,7 @@ import {
   Shield,
   Sparkles,
   Infinity,
+  QrCode,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { TiltCard } from "@/components/ui/TiltCard";
@@ -56,6 +57,13 @@ const memberFeatures = [
     title: copy.featureItems.vault.title,
     desc: copy.featureItems.vault.desc,
     color: "from-violet-500 to-indigo-600",
+    live: true,
+  },
+  {
+    icon: QrCode,
+    title: copy.featureItems.qrShare.title,
+    desc: copy.featureItems.qrShare.desc,
+    color: "from-sky-500 to-cyan-600",
     live: true,
   },
 ];

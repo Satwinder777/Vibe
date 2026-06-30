@@ -2,37 +2,26 @@
 
 import { motion } from "framer-motion";
 import { UserPlus, Upload, Link2, Share2 } from "lucide-react";
+import { copy } from "@/lib/copy";
 
-const steps = [
+const stepMeta = [
   {
     icon: UserPlus,
-    title: "Create account",
-    description:
-      "Sign up free in seconds. Your uploads are saved to your personal history.",
     color: "from-violet-500 to-purple-600",
     shadow: "shadow-violet-500/25",
   },
   {
     icon: Upload,
-    title: "Upload files",
-    description:
-      "Drag and drop any file. Multiple uploads at once, stored securely on MEGA.",
     color: "from-indigo-500 to-blue-600",
     shadow: "shadow-indigo-500/25",
   },
   {
     icon: Link2,
-    title: "Get share link",
-    description:
-      "Each file gets a unique public link instantly. Copy and share anywhere.",
     color: "from-purple-500 to-fuchsia-600",
     shadow: "shadow-purple-500/25",
   },
   {
     icon: Share2,
-    title: "Share anywhere",
-    description:
-      "Anyone with the link can view and download — no account needed for recipients.",
     color: "from-fuchsia-500 to-pink-600",
     shadow: "shadow-fuchsia-500/25",
   },
@@ -64,10 +53,11 @@ export function HowItWorks() {
           className="text-center"
         >
           <h2 className="text-3xl font-bold sm:text-4xl">
-            How it <span className="gradient-text">works</span>
+            {copy.howItWorks.title}{" "}
+            <span className="gradient-text">{copy.howItWorks.titleAccent}</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted">
-            Four simple steps from signup to share
+            {copy.howItWorks.subtitle}
           </p>
         </motion.div>
 
@@ -78,39 +68,43 @@ export function HowItWorks() {
           viewport={{ once: true, margin: "-50px" }}
           className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {steps.map((step, index) => (
-            <motion.div
-              key={step.title}
-              variants={item}
-              whileHover={{
-                y: -8,
-                scale: 1.03,
-                transition: { type: "spring", stiffness: 400 },
-              }}
-              className="glass-card group relative cursor-default rounded-3xl p-6 text-center"
-            >
-              <motion.span
-                className="absolute right-4 top-4 text-xs font-bold text-muted/40"
-                whileHover={{ scale: 1.2, color: "var(--accent)" }}
-              >
-                0{index + 1}
-              </motion.span>
+          {copy.howItWorks.steps.map((step, index) => {
+            const meta = stepMeta[index];
+            const Icon = meta.icon;
+            return (
               <motion.div
-                whileHover={{ scale: 1.15, rotate: 8 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${step.color} shadow-lg ${step.shadow} transition-shadow group-hover:shadow-xl`}
+                key={step.title}
+                variants={item}
+                whileHover={{
+                  y: -8,
+                  scale: 1.03,
+                  transition: { type: "spring", stiffness: 400 },
+                }}
+                className="glass-card group relative cursor-default rounded-3xl p-6 text-center"
               >
-                <step.icon className="h-6 w-6 text-white" />
+                <motion.span
+                  className="absolute right-4 top-4 text-xs font-bold text-muted/40"
+                  whileHover={{ scale: 1.2, color: "var(--accent)" }}
+                >
+                  0{index + 1}
+                </motion.span>
+                <motion.div
+                  whileHover={{ scale: 1.15, rotate: 8 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${meta.color} shadow-lg ${meta.shadow} transition-shadow group-hover:shadow-xl`}
+                >
+                  <Icon className="h-6 w-6 text-white" />
+                </motion.div>
+                <h3 className="text-base font-semibold transition-colors group-hover:text-accent">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {step.description}
+                </p>
+                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/0 to-transparent transition-all group-hover:via-violet-500/50" />
               </motion.div>
-              <h3 className="text-base font-semibold transition-colors group-hover:text-accent">
-                {step.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                {step.description}
-              </p>
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-violet-500/0 to-transparent transition-all group-hover:via-violet-500/50" />
-            </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
     </section>

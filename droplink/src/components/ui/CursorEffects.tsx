@@ -4,11 +4,26 @@ import { useEffect, useState } from "react";
 import { motion, useMotionValue } from "framer-motion";
 import { useCursor } from "@/components/providers/CursorProvider";
 
+function auraSizeForWidth(width: number): number {
+  if (width >= 1920) return 560;
+  if (width >= 1536) return 480;
+  if (width >= 1280) return 400;
+  return 320;
+}
+
 export function CursorEffects() {
   const { springX, springY, springXSlow, springYSlow, x, y, enabled } =
     useCursor();
   const [clicking, setClicking] = useState(false);
+  const [auraSize, setAuraSize] = useState(320);
   const dotScale = useMotionValue(1);
+
+  useEffect(() => {
+    const onResize = () => setAuraSize(auraSizeForWidth(window.innerWidth));
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -34,7 +49,6 @@ export function CursorEffects() {
 
   return (
     <>
-      {/* Soft cursor aura — blends with flow field */}
       <motion.div
         className="pointer-events-none fixed inset-0 z-[1]"
         style={{ x: springXSlow, y: springYSlow }}
@@ -42,15 +56,14 @@ export function CursorEffects() {
         <div
           className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            width: 320,
-            height: 320,
+            width: auraSize,
+            height: auraSize,
             background:
-              "radial-gradient(circle, rgba(139,92,246,0.18) 0%, rgba(99,102,241,0.06) 45%, transparent 70%)",
+              "radial-gradient(circle, rgba(139,92,246,0.22) 0%, rgba(99,102,241,0.08) 42%, transparent 72%)",
           }}
         />
       </motion.div>
 
-      {/* Cursor ring */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[9998]"
         style={{ x: springX, y: springY, translateX: "-50%", translateY: "-50%" }}
@@ -62,7 +75,6 @@ export function CursorEffects() {
         />
       </motion.div>
 
-      {/* Cursor core */}
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[9999]"
         style={{

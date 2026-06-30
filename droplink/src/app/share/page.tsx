@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -32,6 +32,7 @@ function ShareContent() {
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewRef = useRef<string | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -41,24 +42,36 @@ function ShareContent() {
       return;
     }
 
+    let cancelled = false;
+
     getFileById(fileId)
       .then(async (data) => {
         if (!data) throw new Error("not found");
+        if (cancelled) return;
         setFile(data);
         if (getFileCategory(data.name) === "image") {
           const blob = await downloadFileBlob(data);
-          setPreviewUrl(URL.createObjectURL(blob));
+          if (cancelled) return;
+          const url = URL.createObjectURL(blob);
+          if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+          previewRef.current = url;
+          setPreviewUrl(url);
         }
       })
-      .catch(() =>
-        setError(copy.share.notFoundDefault)
-      )
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setError(copy.share.notFoundDefault);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      cancelled = true;
+      if (previewRef.current) {
+        URL.revokeObjectURL(previewRef.current);
+        previewRef.current = null;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileId]);
 
   const shareUrl = file ? getShareUrl(file.id) : "";
@@ -92,8 +105,8 @@ function ShareContent() {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-background/80 backdrop-blur-xl">
+    <div className="relative min-h-screen">
+      <header className="relative z-[2] border-b border-white/10 bg-background/50 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
           <Link
             href={`${basePath}/`}
@@ -106,7 +119,7 @@ function ShareContent() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-20">
+      <main className="relative z-[2] mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-20">
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-accent" />

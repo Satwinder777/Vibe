@@ -11,11 +11,6 @@ import { hasUsedFreeUpload } from "@/lib/free-upload";
 import { copy } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { href: "#upload", label: copy.nav.upload },
-  { href: "#features", label: copy.nav.features },
-];
-
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -36,6 +31,13 @@ export function Navbar() {
     setAuthOpen(true);
     setMobileOpen(false);
   };
+
+  const navLinks = [
+    { href: "#upload", label: copy.nav.upload },
+    ...(user ? [{ href: "#history", label: copy.nav.vault }] : []),
+    { href: "#how-it-works", label: copy.nav.howItWorks },
+    { href: "#features", label: copy.nav.features },
+  ];
 
   return (
     <>
@@ -133,12 +135,29 @@ export function Navbar() {
               </a>
             ))}
             {!user && (
-              <button
-                onClick={() => openAuth("signup")}
-                className="btn-primary mt-2 w-full rounded-lg py-2.5 text-sm font-semibold text-white"
+              <div className="mt-2 flex flex-col gap-2">
+                <button
+                  onClick={() => openAuth("signin")}
+                  className="w-full rounded-lg border border-white/10 py-2.5 text-sm font-medium text-muted"
+                >
+                  {copy.nav.signIn}
+                </button>
+                <button
+                  onClick={() => openAuth("signup")}
+                  className="btn-primary w-full rounded-lg py-2.5 text-sm font-semibold text-white"
+                >
+                  {copy.nav.signUpFree}
+                </button>
+              </div>
+            )}
+            {user && (
+              <a
+                href="#history"
+                onClick={() => setMobileOpen(false)}
+                className="btn-primary mt-2 block w-full rounded-lg py-2.5 text-center text-sm font-semibold text-white"
               >
-                {copy.nav.signUpFree}
-              </button>
+                {copy.nav.vault}
+              </a>
             )}
           </div>
         )}

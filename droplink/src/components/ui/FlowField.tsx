@@ -3,9 +3,15 @@
 import { useEffect, useRef } from "react";
 import { useCursor } from "@/components/providers/CursorProvider";
 
-const PARTICLE_COUNT_DESKTOP = 2200;
-const PARTICLE_COUNT_MOBILE = 700;
-const MAX_SEGMENT = 28;
+const PARTICLE_COUNT_DESKTOP = 2800;
+const PARTICLE_COUNT_MOBILE = 900;
+const MAX_SEGMENT_BASE = 32;
+
+function screenScale(width: number, height: number): number {
+  const area = width * height;
+  const baseline = 1920 * 1080;
+  return Math.min(2.4, Math.max(1, Math.sqrt(area / baseline)));
+}
 
 interface Particle {
   x: number;
@@ -80,12 +86,15 @@ export function FlowField() {
     let h = 0;
 
     const isMobile = window.matchMedia("(pointer: coarse)").matches;
-    const count = isMobile ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       w = window.innerWidth;
       h = window.innerHeight;
+      const scale = screenScale(w, h);
+      const count = Math.floor(
+        (isMobile ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP) * scale
+      );
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
@@ -97,7 +106,7 @@ export function FlowField() {
         y: Math.random() * h,
         px: 0,
         py: 0,
-        speed: 0.35 + Math.random() * 1.0,
+        speed: 0.35 + Math.random() * (1.0 + scale * 0.15),
         hue: 250 + Math.random() * 60,
       }));
       particles.forEach((p) => {
@@ -111,7 +120,12 @@ export function FlowField() {
 
     const draw = () => {
       time += 1;
-      ctx.fillStyle = "rgba(4, 2, 14, 0.14)";
+      const scale = screenScale(w, h);
+      const maxSegment = MAX_SEGMENT_BASE * scale;
+      const mouseRadius = 160 * scale;
+      const fadeAlpha = Math.max(0.08, 0.14 / scale);
+
+      ctx.fillStyle = `rgba(4, 2, 14, ${fadeAlpha})`;
       ctx.fillRect(0, 0, w, h);
 
       const mx = mouseRef.current.x;
@@ -131,9 +145,8 @@ export function FlowField() {
           const dx = p.x - mx;
           const dy = p.y - my;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const radius = 160;
-          if (dist < radius && dist > 0) {
-            const force = (1 - dist / radius) * 2.2;
+          if (dist < mouseRadius && dist > 0) {
+            const force = (1 - dist / mouseRadius) * (2.2 + scale * 0.4);
             angle += Math.atan2(dy, dx) + Math.PI * 0.5 * force;
           }
         }
@@ -146,20 +159,20 @@ export function FlowField() {
         wrapParticle(p, w, h);
 
         const seg = Math.hypot(p.x - p.px, p.y - p.py);
-        if (seg > MAX_SEGMENT) {
+        if (seg > maxSegment) {
           p.px = p.x;
           p.py = p.y;
           continue;
         }
 
-        const alpha = Math.min(0.45, 0.06 + seg * 0.14);
+        const alpha = Math.min(0.55, (0.08 + seg * 0.14) * Math.min(scale, 1.6));
         const hue = p.hue + seg * 6;
 
         ctx.beginPath();
         ctx.moveTo(p.px, p.py);
         ctx.lineTo(p.x, p.y);
-        ctx.strokeStyle = `hsla(${hue}, 70%, 72%, ${alpha})`;
-        ctx.lineWidth = Math.min(1.2, 0.35 + seg * 0.25);
+        ctx.strokeStyle = `hsla(${hue}, 72%, 74%, ${alpha})`;
+        ctx.lineWidth = Math.min(2, (0.4 + seg * 0.28) * Math.min(scale, 1.5));
         ctx.lineCap = "round";
         ctx.stroke();
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Trash2, ExternalLink, FolderOpen } from "lucide-react";
 import { ShareQrButton } from "@/components/ui/ShareQrButton";
@@ -33,6 +33,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
     (UploadResult & { shareUrl: string; previewUrl?: string })[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const previewUrlsRef = useRef<string[]>([]);
   const { showToast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -45,6 +46,8 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
     }
 
     setLoading(true);
+    previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    previewUrlsRef.current = [];
     try {
       const uploads = await getUserUploads(user.uid);
       const mapped = await Promise.all(
@@ -65,6 +68,9 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
           return { ...f, shareUrl, previewUrl };
         })
       );
+      previewUrlsRef.current = mapped
+        .map((f) => f.previewUrl)
+        .filter((url): url is string => !!url);
       setFiles(mapped);
     } catch (err) {
       showToast(getAuthErrorMessage(err), "error");
@@ -76,13 +82,13 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
   useEffect(() => {
     if (authLoading || !user) return;
     fetchFiles();
-    return () => {
-      files.forEach((f) => {
-        if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
-      });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchFiles, refreshTrigger, authLoading, user]);
+
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const copyLink = async (url: string) => {
     await navigator.clipboard.writeText(url);
