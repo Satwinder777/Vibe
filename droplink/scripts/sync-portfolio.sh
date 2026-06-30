@@ -17,6 +17,7 @@ fi
 export GITHUB_PAGES=true
 export NEXT_PUBLIC_APP_URL="https://satwinder777.github.io/Vibe"
 export NEXT_PUBLIC_BASE_PATH="/Vibe"
+export NEXT_PUBLIC_MEGA_FOLDER_NAME="droplink"
 
 echo "→ Building DropLink..."
 npm run build

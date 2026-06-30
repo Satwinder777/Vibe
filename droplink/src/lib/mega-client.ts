@@ -7,9 +7,9 @@ const SHARE_PREFIX = "dl_";
 
 type MegaStorage = import("megajs").Storage;
 type MutableFile = import("megajs").MutableFile;
+type MegaBuffer = import("buffer").Buffer;
 
 let storagePromise: Promise<MegaStorage> | null = null;
-let uploadFolder: MutableFile | null = null;
 
 function getCredentials() {
   const email = process.env.NEXT_PUBLIC_MEGA_EMAIL;
@@ -30,7 +30,7 @@ export function isMegaConfigured(): boolean {
 }
 
 function sanitizeFileName(name: string): string {
-  return name.replace(/[^\w.\-]+/g, "_").slice(0, 120);
+  return name.replace(/[^\w.\-]+/g, "_").slice(0, 80);
 }
 
 export function getMegaStorageName(
@@ -65,6 +65,10 @@ export function parseMegaStorageName(
   };
 }
 
+function resetStorage() {
+  storagePromise = null;
+}
+
 async function getStorage(): Promise<MegaStorage> {
   if (!storagePromise) {
     const { Storage } = await import("megajs");
@@ -74,12 +78,52 @@ async function getStorage(): Promise<MegaStorage> {
   return storagePromise;
 }
 
-async function getUploadFolder(): Promise<MutableFile> {
+async function getReadyStorage(): Promise<MegaStorage> {
   const storage = await getStorage();
   await storage.reload();
+  if (storage.status !== "ready") {
+    resetStorage();
+    throw new Error("MEGA storage is not ready. Try again in a moment.");
+  }
+  return storage;
+}
 
+function toMegaPayload(data: Uint8Array): MegaBuffer {
+  // Copy into a plain ArrayBuffer-backed Uint8Array for megajs stream handling.
+  const copy = new Uint8Array(data.byteLength);
+  copy.set(data);
+  return copy as unknown as MegaBuffer;
+}
+
+async function uploadOnFolder(
+  folder: MutableFile,
+  name: string,
+  data: Uint8Array
+): Promise<MutableFile> {
+  const payload = toMegaPayload(data);
+  const size = payload.byteLength;
+
+  if (size <= 0) {
+    throw new Error("Cannot upload an empty file.");
+  }
+
+  return folder
+    .upload(
+      {
+        name,
+        size,
+        allowUploadBuffering: true,
+      } as Parameters<MutableFile["upload"]>[0] & {
+        allowUploadBuffering: boolean;
+      },
+      payload
+    )
+    .complete;
+}
+
+async function resolveUploadFolder(storage: MegaStorage): Promise<MutableFile> {
   const folderName =
-    process.env.NEXT_PUBLIC_MEGA_FOLDER_NAME ?? "vibe";
+    process.env.NEXT_PUBLIC_MEGA_FOLDER_NAME ?? "droplink";
 
   let folder = storage.root.children?.find(
     (child) => child.directory && child.name === folderName
@@ -88,27 +132,41 @@ async function getUploadFolder(): Promise<MutableFile> {
   if (!folder) {
     folder = await storage.root.mkdir(folderName);
     await storage.reload();
+    const nodeId = folder.nodeId;
+    if (nodeId && storage.files[nodeId]) {
+      return storage.files[nodeId];
+    }
+    return folder;
   }
 
-  const nodeId = folder?.nodeId;
-  if (!nodeId) {
-    throw new Error("MEGA upload folder could not be resolved.");
+  const nodeId = folder.nodeId;
+  if (nodeId && storage.files[nodeId]) {
+    return storage.files[nodeId];
   }
 
-  const uploadTarget = storage.files[nodeId] ?? folder;
-  if (!uploadTarget.directory) {
-    throw new Error("MEGA upload target is not a folder.");
-  }
-
-  uploadFolder = uploadTarget;
-  return uploadTarget;
+  return folder;
 }
 
-async function refreshFolder(): Promise<MutableFile> {
-  const storage = await getStorage();
-  await storage.reload();
-  uploadFolder = null;
-  return getUploadFolder();
+async function performUpload(
+  storage: MegaStorage,
+  name: string,
+  data: Uint8Array
+): Promise<MutableFile> {
+  const folder = await resolveUploadFolder(storage);
+
+  try {
+    return await uploadOnFolder(folder, name, data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const isArgsError = message.includes("EARGS") || message.includes("(-2)");
+
+    if (!isArgsError) {
+      throw error;
+    }
+
+    // Legacy/corrupt folder targets can trigger EARGS — retry on account root.
+    return uploadOnFolder(storage.root, name, data);
+  }
 }
 
 export function getMegaFileMetadata(
@@ -140,28 +198,19 @@ export async function uploadToMega(
   sessionId: string | null,
   onProgress?: (percent: number) => void
 ): Promise<SharedFile> {
-  uploadFolder = null;
-  const folder = await getUploadFolder();
+  const storage = await getReadyStorage();
   const data = new Uint8Array(await file.arrayBuffer());
   const storageName = getMegaStorageName(shareId, file.name, sessionId);
-  const size = file.size > 0 ? file.size : data.byteLength;
-
-  if (size <= 0) {
-    throw new Error("Cannot upload an empty file.");
-  }
 
   onProgress?.(20);
 
-  const uploadedFile = await folder
-    .upload(
-      {
-        name: storageName,
-        size,
-      },
-      // megajs accepts Uint8Array at runtime; types only list Buffer|string.
-      data as unknown as import("buffer").Buffer
-    )
-    .complete;
+  let uploadedFile: MutableFile;
+  try {
+    uploadedFile = await performUpload(storage, storageName, data);
+  } catch (error) {
+    resetStorage();
+    throw error;
+  }
 
   onProgress?.(100);
 
@@ -183,15 +232,15 @@ export async function uploadToMega(
 export async function findMegaFileByShareId(
   shareId: string
 ): Promise<MutableFile | null> {
-  const folder = await refreshFolder();
+  const storage = await getReadyStorage();
 
-  const match = folder.children?.find((child) => {
-    if (child.directory || !child.name?.startsWith(SHARE_PREFIX)) return false;
-    const parsed = parseMegaStorageName(child.name);
-    return parsed?.shareId === shareId;
-  });
-
-  return match ?? null;
+  return (
+    storage.find((child) => {
+      if (child.directory || !child.name?.startsWith(SHARE_PREFIX)) return false;
+      const parsed = parseMegaStorageName(child.name);
+      return parsed?.shareId === shareId;
+    }, true) ?? null
+  );
 }
 
 export async function getFileById(id: string): Promise<SharedFile | null> {
@@ -205,13 +254,15 @@ export async function getFileById(id: string): Promise<SharedFile | null> {
 export async function listMegaFilesBySession(
   sessionId: string
 ): Promise<SharedFile[]> {
-  const folder = await refreshFolder();
+  const storage = await getReadyStorage();
   const sessionTag = sessionId.replace(/-/g, "").slice(0, 8);
   const files: SharedFile[] = [];
 
-  for (const child of folder.children ?? []) {
-    if (child.directory || !child.name?.startsWith(SHARE_PREFIX)) continue;
-    const parsed = parseMegaStorageName(child.name);
+  for (const child of storage.filter(
+    (node) => !node.directory && !!node.name?.startsWith(SHARE_PREFIX),
+    true
+  )) {
+    const parsed = parseMegaStorageName(child.name ?? "");
     if (!parsed || parsed.sessionTag !== sessionTag) continue;
     files.push(getMegaFileMetadata(child, parsed.shareId));
   }
@@ -223,8 +274,7 @@ export async function listMegaFilesBySession(
 }
 
 export async function downloadFileBlob(file: SharedFile): Promise<Blob> {
-  const storage = await getStorage();
-  await storage.reload();
+  const storage = await getReadyStorage();
 
   if (!file.megaNodeId) throw new Error("File not found");
 
@@ -239,8 +289,7 @@ export async function deleteMegaFile(shareId: string): Promise<boolean> {
   const file = await findMegaFileByShareId(shareId);
   if (!file?.nodeId) return false;
 
-  const storage = await getStorage();
-  await storage.reload();
+  const storage = await getReadyStorage();
   const megaFile = storage.files[file.nodeId];
   if (megaFile) await megaFile.delete();
   return true;
