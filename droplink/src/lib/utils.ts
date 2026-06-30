@@ -83,7 +83,7 @@ export function getShareUrl(id: string): string {
   }
   const base =
     process.env.NEXT_PUBLIC_APP_URL ??
-    `https://vibe.github.io${basePath}`;
+    `https://satwinder777.github.io/Vibe${basePath}`;
   return `${base}/share/?id=${id}`;
 }
 

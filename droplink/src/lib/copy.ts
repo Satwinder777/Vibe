@@ -254,7 +254,7 @@ export const copy = {
     fileMeta: "Uploaded · 2.1 MB",
     fileStatus: "Complete",
     linkTitle: "Share link ready",
-    linkUrl: "vibe.github.io/share/xK9m2p",
+    linkUrl: "satwinder777.github.io/Vibe/share/xK9m2p",
     imageAlt: "Abstract digital flow visualization",
   },
 

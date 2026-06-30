@@ -37,8 +37,8 @@ jobs:
           NEXT_PUBLIC_MEGA_EMAIL: ${{ secrets.MEGA_EMAIL }}
           NEXT_PUBLIC_MEGA_PASSWORD: ${{ secrets.MEGA_PASSWORD }}
           NEXT_PUBLIC_MEGA_FOLDER_NAME: vibe
-          NEXT_PUBLIC_APP_URL: https://vibe.github.io
-          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_APP_URL: https://satwinder777.github.io/Vibe
+          NEXT_PUBLIC_BASE_PATH: /Vibe
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}

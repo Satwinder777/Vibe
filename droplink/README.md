@@ -2,9 +2,9 @@
 
 Instant file sharing — static site on GitHub Pages, powered by MEGA cloud storage.
 
-**Live:** [https://vibe.github.io/](https://vibe.github.io/)
+**Live:** [https://satwinder777.github.io/Vibe/](https://satwinder777.github.io/Vibe/)
 
-Share link format: `https://vibe.github.io/share/?id=YOUR_ID`
+Share link format: `https://satwinder777.github.io/Vibe/share/?id=YOUR_ID`
 
 ## Features
 
@@ -72,16 +72,16 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 ## Deploy to GitHub Pages
 
 1. Push to `main` branch on `Satwinder777/Vibe`
-2. In GitHub repo → **Settings** → **Pages** → Source: **GitHub Actions**
-3. Add repository secrets:
+2. In GitHub repo → **Settings** → **Pages** → Branch: `gh-pages` / `(root)`
+3. Add repository secrets (for Actions builds):
    - `MEGA_EMAIL` / `MEGA_PASSWORD`
    - `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`
    - `ACCESS_TOKEN` — your private pro unlock token (same as `NEXT_PUBLIC_ACCESS_TOKEN` locally)
-4. Push triggers auto-deploy to `https://vibe.github.io/`
+4. Push triggers auto-deploy to `https://satwinder777.github.io/Vibe/`
 
 ## Share Links
 
-Format: `https://vibe.github.io/share/?id=abc12345`
+Format: `https://satwinder777.github.io/Vibe/share/?id=abc12345`
 
 ## MEGA Setup
 

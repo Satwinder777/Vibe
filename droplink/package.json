@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "deploy": "bash scripts/deploy.sh",
-    "sync": "bash scripts/sync-vibe.sh"
+    "sync": "bash scripts/sync-vibe.sh",
+    "sync:portfolio": "bash scripts/sync-portfolio.sh"
   },
   "dependencies": {
     "clsx": "^2.1.1",
