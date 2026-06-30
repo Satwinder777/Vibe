@@ -158,7 +158,8 @@ export async function uploadToMega(
         name: storageName,
         size,
       },
-      data
+      // megajs accepts Uint8Array at runtime; types only list Buffer|string.
+      data as unknown as import("buffer").Buffer
     )
     .complete;
 
