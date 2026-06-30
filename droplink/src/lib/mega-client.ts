@@ -1,6 +1,5 @@
 "use client";
 
-import { Buffer } from "buffer";
 import type { SharedFile } from "./types";
 import { getFileExtension, inferMimeType } from "./utils";
 
@@ -31,7 +30,7 @@ export function isMegaConfigured(): boolean {
 }
 
 function sanitizeFileName(name: string): string {
-  return name.replace(/[^\w.\-() ]/g, "_").slice(0, 180);
+  return name.replace(/[^\w.\-]+/g, "_").slice(0, 120);
 }
 
 export function getMegaStorageName(
@@ -82,27 +81,27 @@ async function getUploadFolder(): Promise<MutableFile> {
   const folderName =
     process.env.NEXT_PUBLIC_MEGA_FOLDER_NAME ?? "vibe";
 
-  let folder = storage.find(
-    (child) => child.directory && child.name === folderName,
-    true
+  let folder = storage.root.children?.find(
+    (child) => child.directory && child.name === folderName
   );
 
   if (!folder) {
-    folder = await storage.mkdir(folderName);
+    folder = await storage.root.mkdir(folderName);
     await storage.reload();
-    folder =
-      storage.find(
-        (child) => child.directory && child.name === folderName,
-        true
-      ) ?? folder;
   }
 
-  if (!folder?.nodeId) {
+  const nodeId = folder?.nodeId;
+  if (!nodeId) {
     throw new Error("MEGA upload folder could not be resolved.");
   }
 
-  uploadFolder = folder;
-  return folder;
+  const uploadTarget = storage.files[nodeId] ?? folder;
+  if (!uploadTarget.directory) {
+    throw new Error("MEGA upload target is not a folder.");
+  }
+
+  uploadFolder = uploadTarget;
+  return uploadTarget;
 }
 
 async function refreshFolder(): Promise<MutableFile> {
@@ -143,21 +142,23 @@ export async function uploadToMega(
 ): Promise<SharedFile> {
   uploadFolder = null;
   const folder = await getUploadFolder();
-  const buffer = await file.arrayBuffer();
-  const data = new Uint8Array(buffer);
+  const data = new Uint8Array(await file.arrayBuffer());
   const storageName = getMegaStorageName(shareId, file.name, sessionId);
+  const size = file.size > 0 ? file.size : data.byteLength;
+
+  if (size <= 0) {
+    throw new Error("Cannot upload an empty file.");
+  }
 
   onProgress?.(20);
-
-  const payload = Buffer.from(data);
 
   const uploadedFile = await folder
     .upload(
       {
         name: storageName,
-        size: payload.byteLength,
+        size,
       },
-      payload
+      data
     )
     .complete;
 
