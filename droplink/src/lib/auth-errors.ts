@@ -13,7 +13,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/operation-not-allowed":
     "Email sign-in is not enabled. Contact the site administrator.",
   "auth/unauthorized-domain":
-    "This domain is not authorized for sign-in. Add satwinder777.github.io in Firebase Authentication settings.",
+    "This domain is not authorized for sign-in. Add vibe.github.io in Firebase Authentication settings.",
   "auth/permission-denied":
     "Unable to access your vault. Verify Firestore security rules are configured correctly.",
   "auth/network-request-failed":

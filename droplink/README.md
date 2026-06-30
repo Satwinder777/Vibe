@@ -2,9 +2,9 @@
 
 Instant file sharing — static site on GitHub Pages, powered by MEGA cloud storage.
 
-**Live:** [https://satwinder777.github.io/Vibe/](https://satwinder777.github.io/Vibe/)
+**Live:** [https://vibe.github.io/](https://vibe.github.io/)
 
-Share link format: `https://satwinder777.github.io/Vibe/share/?id=YOUR_ID`
+Share link format: `https://vibe.github.io/share/?id=YOUR_ID`
 
 ## Features
 
@@ -76,11 +76,11 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 3. Add repository secrets:
    - `MEGA_EMAIL` / `MEGA_PASSWORD`
    - `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`
-4. Push triggers auto-deploy to `https://satwinder777.github.io/Vibe/`
+4. Push triggers auto-deploy to `https://vibe.github.io/`
 
 ## Share Links
 
-Format: `https://satwinder777.github.io/Vibe/share/?id=abc12345`
+Format: `https://vibe.github.io/share/?id=abc12345`
 
 ## MEGA Setup
 
