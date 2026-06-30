@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Link2, Menu, X, LogOut, User } from "lucide-react";
+import { Link2, Menu, X, LogOut, User, KeyRound } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { MasterUnlockModal } from "@/components/auth/MasterUnlockModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { hasUsedFreeUpload } from "@/lib/free-upload";
 import { copy } from "@/lib/copy";
@@ -15,9 +15,17 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
   const [freeUsed, setFreeUsed] = useState(false);
-  const { user, loading, logOut } = useAuth();
+  const {
+    user,
+    loading,
+    logOut,
+    hasFullAccess,
+    isMasterUnlocked,
+    isAccessTokenConfigured,
+  } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -32,9 +40,12 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
+  const displayName =
+    user?.email ?? (isMasterUnlocked ? copy.nav.proAccess : "");
+
   const navLinks = [
     { href: "#upload", label: copy.nav.upload },
-    ...(user ? [{ href: "#history", label: copy.nav.vault }] : []),
+    ...(hasFullAccess ? [{ href: "#history", label: copy.nav.vault }] : []),
     { href: "#how-it-works", label: copy.nav.howItWorks },
     { href: "#features", label: copy.nav.features },
   ];
@@ -72,7 +83,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {!user && !loading && (
+            {!hasFullAccess && !loading && (
               <span className="hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-muted sm:inline-block">
                 {freeUsed ? copy.nav.trialUsed : copy.nav.freeUpload}
               </span>
@@ -80,23 +91,45 @@ export function Navbar() {
             <ThemeToggle />
             {!loading && (
               <>
-                {user ? (
+                {hasFullAccess ? (
                   <div className="hidden items-center gap-2 sm:flex">
-                    <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs">
-                      <User className="h-3.5 w-3.5 text-violet-400" />
-                      <span className="max-w-[90px] truncate text-muted">
-                        {user.email}
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                        isMasterUnlocked
+                          ? "border-amber-500/30 bg-amber-500/10"
+                          : "border-white/10 bg-white/5"
+                      )}
+                    >
+                      <User
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          isMasterUnlocked ? "text-amber-400" : "text-violet-400"
+                        )}
+                      />
+                      <span className="max-w-[100px] truncate text-muted">
+                        {displayName}
                       </span>
                     </div>
                     <button
                       onClick={() => logOut()}
                       className="rounded-lg p-2 text-muted hover:text-foreground"
+                      title="Sign out"
                     >
                       <LogOut className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
                   <div className="hidden items-center gap-2 sm:flex">
+                    {isAccessTokenConfigured && (
+                      <button
+                        onClick={() => setUnlockOpen(true)}
+                        className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-300 hover:bg-amber-500/15"
+                      >
+                        <KeyRound className="h-3.5 w-3.5" />
+                        {copy.nav.unlock}
+                      </button>
+                    )}
                     <button
                       onClick={() => openAuth("signin")}
                       className="px-3 py-2 text-sm text-muted hover:text-foreground"
@@ -134,8 +167,20 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
-            {!user && (
+            {!hasFullAccess && (
               <div className="mt-2 flex flex-col gap-2">
+                {isAccessTokenConfigured && (
+                  <button
+                    onClick={() => {
+                      setUnlockOpen(true);
+                      setMobileOpen(false);
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 py-2.5 text-sm font-medium text-amber-300"
+                  >
+                    <KeyRound className="h-4 w-4" />
+                    {copy.nav.unlock}
+                  </button>
+                )}
                 <button
                   onClick={() => openAuth("signin")}
                   className="w-full rounded-lg border border-white/10 py-2.5 text-sm font-medium text-muted"
@@ -150,14 +195,13 @@ export function Navbar() {
                 </button>
               </div>
             )}
-            {user && (
-              <a
-                href="#history"
-                onClick={() => setMobileOpen(false)}
-                className="btn-primary mt-2 block w-full rounded-lg py-2.5 text-center text-sm font-semibold text-white"
+            {hasFullAccess && (
+              <button
+                onClick={() => logOut()}
+                className="mt-2 w-full rounded-lg border border-white/10 py-2.5 text-sm text-muted"
               >
-                {copy.nav.vault}
-              </a>
+                Sign out
+              </button>
             )}
           </div>
         )}
@@ -167,6 +211,10 @@ export function Navbar() {
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         defaultMode={authMode}
+      />
+      <MasterUnlockModal
+        open={unlockOpen}
+        onClose={() => setUnlockOpen(false)}
       />
     </>
   );

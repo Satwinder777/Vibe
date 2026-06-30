@@ -17,6 +17,7 @@ import {
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { FileIcon } from "@/components/ui/FileIcon";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { MasterUnlockModal } from "@/components/auth/MasterUnlockModal";
 import { ShareQrButton } from "@/components/ui/ShareQrButton";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -41,18 +42,19 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadProgress[]>([]);
   const [authOpen, setAuthOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
   const [freeUsed, setFreeUsed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const zoneRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, hasFullAccess, isAccessTokenConfigured } = useAuth();
 
   useEffect(() => {
     setFreeUsed(hasUsedFreeUpload());
   }, []);
 
-  const locked = !authLoading && !user && freeUsed;
-  const isGuest = !user && !freeUsed;
+  const locked = !authLoading && !hasFullAccess && freeUsed;
+  const isGuest = !hasFullAccess && !freeUsed;
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const el = zoneRef.current;
@@ -69,13 +71,13 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
       let fileArray = Array.from(files);
       if (fileArray.length === 0) return;
 
-      if (!user && freeUsed) {
+      if (!hasFullAccess && freeUsed) {
         setAuthOpen(true);
         showToast(copy.upload.toastFreeUsed, "error");
         return;
       }
 
-      if (!user && fileArray.length > 1) {
+      if (!hasFullAccess && fileArray.length > 1) {
         showToast(copy.upload.toastGuestLimit, "error");
         fileArray = [fileArray[0]];
       }
@@ -131,7 +133,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             shareUrl: getShareUrl(shared.id),
           };
 
-          if (user) {
+          if (hasFullAccess && user) {
             try {
               await saveUserUpload(user.uid, result);
             } catch (vaultErr) {
@@ -157,7 +159,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
           onUploadComplete(result);
 
-          if (!user) {
+          if (!hasFullAccess) {
             showToast(copy.upload.toastGuestDone);
           }
         } catch (error) {
@@ -177,7 +179,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
         }
       }
     },
-    [onUploadComplete, showToast, user, freeUsed]
+    [onUploadComplete, showToast, user, hasFullAccess, freeUsed]
   );
 
   const handleDrop = useCallback(
@@ -202,7 +204,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
     <section id="upload" className="relative py-10 sm:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Free tier banner */}
-        {!user && !authLoading && (
+        {!hasFullAccess && !authLoading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -258,7 +260,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           <input
             ref={inputRef}
             type="file"
-            multiple={!!user}
+            multiple={hasFullAccess}
             className="hidden"
             onChange={(e) => {
               if (e.target.files) processFiles(e.target.files);
@@ -303,6 +305,18 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                   <Sparkles className="h-4 w-4" />
                   {copy.upload.lockedCta}
                 </motion.button>
+                {isAccessTokenConfigured && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUnlockOpen(true);
+                    }}
+                    className="pointer-events-auto mt-3 text-sm font-medium text-amber-400 hover:text-amber-300"
+                  >
+                    {copy.nav.unlock} →
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -427,6 +441,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
       </div>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <MasterUnlockModal open={unlockOpen} onClose={() => setUnlockOpen(false)} />
     </section>
   );
 }

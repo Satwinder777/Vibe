@@ -16,10 +16,24 @@ export const copy = {
     signUpFree: "Get started free",
     trialUsed: "Trial complete",
     freeUpload: "1 free transfer",
+    proAccess: "Pro access",
+    unlock: "Pro key",
+  },
+
+  master: {
+    title: "Pro access",
+    subtitle: "Enter your private access token to unlock everything instantly.",
+    tokenLabel: "Access token",
+    tokenPlaceholder: "Enter your token",
+    unlockCta: "Unlock now",
+    unlocked: "Pro access unlocked. All features are now available.",
+    invalid: "Invalid access token. Please try again.",
+    notConfigured:
+      "Access token is not configured on this build. Add NEXT_PUBLIC_ACCESS_TOKEN to your environment.",
   },
 
   hero: {
-    badgeMember: "Member · Unlimited transfers",
+    badgeMember: "Pro access · Unlimited transfers",
     badgeTrialUsed: "Guest trial complete",
     badgeGuest: "Try once — no account required",
     headline: "Share files in a",

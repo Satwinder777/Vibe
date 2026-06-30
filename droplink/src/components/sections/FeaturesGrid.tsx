@@ -175,7 +175,7 @@ function FeatureCard({
 }
 
 export function FeaturesGrid() {
-  const { user } = useAuth();
+  const { hasFullAccess } = useAuth();
 
   return (
     <section id="features" className="py-16 sm:py-24">
@@ -194,7 +194,7 @@ export function FeaturesGrid() {
             <span className="gradient-text">{copy.features.titleAccent}</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted">
-            {user ? copy.features.descMember : copy.features.descGuest}
+            {hasFullAccess ? copy.features.descMember : copy.features.descGuest}
           </p>
         </motion.div>
 

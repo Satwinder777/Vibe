@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { HeroVisual } from "./HeroVisual";
 
 export function Hero() {
-  const { user } = useAuth();
+  const { hasFullAccess } = useAuth();
   const [freeUsed, setFreeUsed] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function Hero() {
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-violet-200/90 backdrop-blur-md"
             >
               <Gift className="h-3.5 w-3.5 text-violet-400" />
-              {user
+              {hasFullAccess
                 ? copy.hero.badgeMember
                 : freeUsed
                   ? copy.hero.badgeTrialUsed
@@ -50,7 +50,7 @@ export function Hero() {
               transition={{ delay: 0.16 }}
               className="mt-5 max-w-lg text-base leading-relaxed text-muted/90 sm:text-lg"
             >
-              {user ? copy.hero.descMember : copy.hero.descGuest}
+              {hasFullAccess ? copy.hero.descMember : copy.hero.descGuest}
             </motion.p>
 
             <motion.div
@@ -64,7 +64,7 @@ export function Hero() {
                 className="btn-primary inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white"
               >
                 <Zap className="h-4 w-4" />
-                {user
+                {hasFullAccess
                   ? copy.hero.ctaUpload
                   : freeUsed
                     ? copy.hero.ctaAccount

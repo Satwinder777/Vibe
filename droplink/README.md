@@ -39,7 +39,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Firebase Setup
 
 1. Create a project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable **Email/Password** authentication
+2. Enable **Email/Password** and **Anonymous** authentication
 3. Create a **Firestore** database
 4. Add Firestore rules:
 
@@ -76,6 +76,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 3. Add repository secrets:
    - `MEGA_EMAIL` / `MEGA_PASSWORD`
    - `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`
+   - `ACCESS_TOKEN` — your private pro unlock token (same as `NEXT_PUBLIC_ACCESS_TOKEN` locally)
 4. Push triggers auto-deploy to `https://vibe.github.io/`
 
 ## Share Links

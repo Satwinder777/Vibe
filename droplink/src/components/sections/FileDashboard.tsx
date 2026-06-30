@@ -35,11 +35,11 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
   const [loading, setLoading] = useState(false);
   const previewUrlsRef = useRef<string[]>([]);
   const { showToast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, hasFullAccess } = useAuth();
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
   const fetchFiles = useCallback(async () => {
-    if (!user || !isMegaConfigured()) {
+    if (!hasFullAccess || !user || !isMegaConfigured()) {
       setFiles([]);
       setLoading(false);
       return;
@@ -77,12 +77,12 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
     } finally {
       setLoading(false);
     }
-  }, [user, showToast]);
+  }, [user, hasFullAccess, showToast]);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading || !hasFullAccess || !user) return;
     fetchFiles();
-  }, [fetchFiles, refreshTrigger, authLoading, user]);
+  }, [fetchFiles, refreshTrigger, authLoading, hasFullAccess, user]);
 
   useEffect(() => {
     return () => {
@@ -107,7 +107,7 @@ export function FileDashboard({ refreshTrigger }: FileDashboardProps) {
     }
   };
 
-  if (authLoading || !user) return null;
+  if (authLoading || !hasFullAccess || !user) return null;
 
   return (
     <section id="history" className="py-10 sm:py-14">
