@@ -15,8 +15,8 @@ if [ -f .env.local ]; then
 fi
 
 export GITHUB_PAGES=true
-export NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-https://satwinder777.github.io/Vibe}"
-export NEXT_PUBLIC_BASE_PATH="${NEXT_PUBLIC_BASE_PATH:-/Vibe}"
+export NEXT_PUBLIC_APP_URL="https://satwinder777.github.io/Vibe"
+export NEXT_PUBLIC_BASE_PATH="/Vibe"
 
 echo "→ Building DropLink..."
 npm run build
